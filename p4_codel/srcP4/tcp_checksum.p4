@@ -28,7 +28,7 @@ control computeChecksum(inout headers hdr, inout metadata meta) {
         update_checksum_with_payload(hdr.tcp.isValid(), { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, 
             8w0, hdr.ipv4.protocol, meta.routing_metadata.tcpLength, hdr.tcp.srcPort, hdr.tcp.dstPort, 
             hdr.tcp.seqNo, hdr.tcp.ackNo, hdr.tcp.dataOffset, hdr.tcp.res, hdr.tcp.flags, hdr.tcp.window, 
-            hdr.tcp.urgentPtr, hdr.tcp_options, hdr.queue_delay }, hdr.tcp.checksum, HashAlgorithm.csum16);
+            hdr.tcp.urgentPtr, hdr.monitor }, hdr.tcp.checksum, HashAlgorithm.csum16);
     }
 }
 

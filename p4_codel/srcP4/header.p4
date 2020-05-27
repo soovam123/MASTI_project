@@ -75,6 +75,7 @@ header tcp_t {
     bit<16> urgentPtr;
 }
 
+/*
 header tcp_opt_t {
     bit<32> a;
     bit<32> b;
@@ -84,18 +85,27 @@ header tcp_opt_t {
 header queue_delay_t {
     bit<32> delay;
 }
+*/
+
+header monitor_t {
+    bit<1> if_monitor;
+    bit<1> received;
+    bit<48> send_time;
+    bit<48> relative_time;
+}
 
 struct headers {
     ethernet_t    ethernet; 
     ipv4_t        ipv4; 
-    queue_delay_t queue_delay; 
+    //queue_delay_t queue_delay; 
     tcp_t         tcp; 
-    tcp_opt_t     tcp_options; 
+    monitor_t     monitor;
+    //tcp_opt_t     tcp_options; 
     udp_t         udp;
 }
 
 struct fwd_t {
-    bit<32> fptr;
+    bit<8> to_monitor;
 }
 
 struct metadata {

@@ -28,6 +28,9 @@
 #endif
 
 #define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
+#NUM_PORT 1
+#REGISTER_ID 1
+register<bit<32>>(NUM_PORT) r_recent_latency;
 
 //const bit<32> BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE = 1;
 
@@ -36,6 +39,7 @@
 //const bit<32> I2E_CLONE_SESSION_ID = 5;
 
 parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+    
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
         meta.routing_metadata.tcpLength = hdr.ipv4.totalLen;
@@ -45,6 +49,8 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
             default: accept;
         }
     }
+
+    /*
     state parse_payload {
         packet.extract(hdr.tcp_options);
 	#ifdef add_queue_delay
@@ -52,8 +58,12 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
 	#endif
         transition accept;
     }
+    */
+
     state parse_tcp {
         packet.extract(hdr.tcp);
+        packet.extract(hdr.monitor);
+    /*    
 	#ifdef add_queue_delay
         transition select(hdr.tcp.dataOffset) {
             4w0x8: parse_payload;
@@ -62,13 +72,17 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
 	#else
 	transition accept;
 	#endif
+    */
+        transition accept;
     }
+
     state parse_udp {
         packet.extract(hdr.udp);
         transition select(hdr.udp.destPort) {
             default: accept;
         }
     }
+
     state start {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.ethertype) {
@@ -139,15 +153,16 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
     c_checksum() c_checksum_0;
     c_add_queue_delay() c_add_queue_delay_0;
 
-    action change_macs(bit<48> smac, bit<48> dmac, bit<32> dip) {
-        hdr.ethernet.src_addr = smac;
-        hdr.ethernet.dst_addr = dmac;
-        hdr.ipv4.dstAddr = dip;
+    action change_addrs() {
+        bit<48> temp = hdr.ethernet,src_addr;
+        hdr.ethernet.src_addr = hdr.ethernet.dst_addr;
+        hdr.ethernet.dst_addr = temp;
+        hdr.ipv4.dstAddr = hdr.ipv4.src_addr;
     }
 
-    table exchange_mac {
+    table exchange_address {
         actions = {
-            change_macs;
+            change_addrs;
         }
         key = {
             hdr.ipv4.srcAddr : exact; 
@@ -160,13 +175,26 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
             debug_std_meta_egress_start.apply(standard_metadata);
         #endif  // ENABLE_DEBUG_TABLES 
         
+        /*
         #ifdef add_queue_delay
             c_add_queue_delay_0.apply(hdr, standard_metadata);
             c_checksum_0.apply(hdr, meta);
         #endif
+        */
 
+        if (meta.monitor.isValid()) {
+            if (meta.fwd.to_monitor != 0) {
+                // Packet to be sent to monitor
+
+                hdr.monitor.send_time = standard_metadata.egress_global_timestamp;
+            }
+        }
         if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
-            exchange_mac.apply();
+            // Packet is a clone to reply back with monitor data
+
+            hdr.monitor.received = 1w1;
+            hdr.monitor.relative_time = (standard_metadata.egress_global_timestamp - standard_metadata.ingress_global_timestamp);
+            exchange_address.apply();
         }
 
         #ifdef ENABLE_DEBUG_TABLES
@@ -187,13 +215,21 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     action forward(bit<9> egress_spec, bit<48> dst_mac) {
         standard_metadata.egress_spec = egress_spec;
         hdr.ethernet.dst_addr = dst_mac;
+
+        if (hdr.monitor.isValid()){
+            meta.fwd.to_monitor = 8w10;             // packet going to monitor
+        }             
     }
 
     action clone_i2e(bit<32> fptr, bit<32> session_id) {
         //const bit<32> REPORT_MIRROR_SESSION_ID = 5;
 
-        clone(CloneType.I2E, session_id);   //REPORT_MIRROR_SESSION_ID);
-        meta.fwd.fptr = fptr;
+        clone3(CloneType.I2E, session_id, {standard_metadata});   //REPORT_MIRROR_SESSION_ID);
+        //meta.fwd.fptr = fptr;
+    }
+
+    action drop_packet() {
+        mark_to_drop(standard_metadata);
     }
 
     table cloning {
@@ -222,9 +258,26 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
             debug_std_meta_ingress_start.apply(standard_metadata);
             my_debug_1_1.apply(hdr, meta);
         #endif  // ENABLE_DEBUG_TABLES
-        
-        forwarding.apply();
-        cloning.apply();
+        if (hdr.monitor.isValid()) {
+            if (hdr.monitor.received == 0 && hdr.monitor.if_monitor != 1w0) {
+                // The packet received is a monitoring packet
+                cloning.apply();
+                forwarding.apply();
+            }
+            else if (hdr.monitor.received != 0) {
+                // The packet received is the cloned monitored packet
+                bit<32> latency = (standard_metadata.ingress_global_timestamp - (hdr.monitor.send_time + hdr.monitor.relative_time)) >> 2;
+                r_recent_latency.write(REGISTER_ID,latency);
+                drop_packet();
+            }
+            else {
+                hdr.monitor.if_monitor = 1w1;
+                forwarding.apply();
+            }
+        }
+        else {
+            forward.apply();
+        }
 
         #ifdef ENABLE_DEBUG_TABLES
             my_debug_1_2.apply(hdr, meta);
@@ -239,8 +292,9 @@ control DeparserImpl(packet_out packet, in headers hdr) {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.tcp);
-        packet.emit(hdr.tcp_options);
-        packet.emit(hdr.queue_delay);
+        //packet.emit(hdr.tcp_options);
+        //packet.emit(hdr.queue_delay);
+        packet.emit(hdr.monitor);
         packet.emit(hdr.udp);
     }
 }
