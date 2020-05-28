@@ -88,8 +88,8 @@ header queue_delay_t {
 */
 
 header monitor_t {
-    bit<1> if_monitor;
-    bit<1> received;
+    bit<4> if_monitor;
+    bit<4> received;
     bit<48> send_time;
     bit<48> relative_time;
 }

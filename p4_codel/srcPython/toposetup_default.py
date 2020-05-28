@@ -26,9 +26,9 @@ from ping import *
 from linuxrouter import LinuxRouter
 
 import sys
+sys.path.insert(1,'/home/soovam/Documents/p4-codel/eval_scrips/')
+from eval import * 
 #from eval_scripts.eval import *
-sys.path.insert(1, '/home/abhi/Documents/p4-codel/eval_scripts/')
-#import eval
 
 import argparse
 from time import sleep
@@ -69,11 +69,11 @@ class MyTopo(Topo):
     def __init__(self, json_path, p4=True, **opts):
         # Initialize topology and default options
         Topo.__init__(self, **opts)
-        #s1 = self.addSwitch('s1')
+        s1 = self.addSwitch('s1')
 
         aqm_switch = None
         if p4:
-            aqm_switch = self.addSwitch('r0',
+            aqm_switch = self.addSwitch('r1',
                                     cls=P4Switch,
                                     sw_path = args.swpath,
                                     json_path = json_path,
@@ -82,60 +82,35 @@ class MyTopo(Topo):
                                     #pcap_dir = "out",
                                     log_console = True, #TODO
                                     enable_debugger = False)
-            s1 = self.addSwitch('r1',
-                                    cls=P4Switch,
-                                    sw_path = args.swpath,
-                                    json_path = json_path,
-                                    thrift_port = 22223,
-                                    pcap_dump = not args.nopcap,
-                                    #pcap_dir = "out",
-                                    log_console = True, #TODO
-                                    enable_debugger = False)
-            s2 = self.addSwitch('r2',
-                                    cls=P4Switch,
-                                    sw_path = args.swpath,
-                                    json_path = json_path,
-                                    thrift_port = 22224,
-                                    pcap_dump = not args.nopcap,
-                                    #pcap_dir = "out",
-                                    log_console = True, #TODO
-                                    enable_debugger = False)
         else:
             aqm_switch = self.addNode( 'r1', cls=LinuxRouter )
-            s1 = self.addSwitch('s1')
-            s2 = self.addSwitch('s2')
 
-        #s2 = self.addSwitch('s2')
+        s2 = self.addSwitch('s2')
 
         h1 = self.addHost('h1', ip = '10.0.1.1/24',
                           mac = '00:00:00:00:01:01',
-			  defaultRoute='via 10.0.1.10 dev eth0')
-        h2 = self.addHost('h2', ip = '10.0.2.2/24',
+                          defaultRoute='via 10.0.1.254 dev eth0')
+        h2 = self.addHost('h2', ip = '10.0.1.2/24',
+                          mac = '00:00:00:00:01:02',
+                          defaultRoute='via 10.0.1.254 dev eth0')
+        h3 = self.addHost('h3', ip = '10.0.3.1/24',
+                          mac = '00:00:00:00:02:01',
+                          defaultRoute='via 10.0.3.254 dev eth0')
+        h4 = self.addHost('h4', ip = '10.0.3.2/24',
                           mac = '00:00:00:00:02:02',
-			  defaultRoute='via 10.0.2.20 dev eth0')
-        h3 = self.addHost('h3', ip = '10.0.3.3/24',
-                          mac = '00:00:00:00:03:03',
-			  defaultRoute='via 10.0.1.30 dev eth0')                         
-        h4 = self.addHost('h4', ip = '10.0.4.4/24',
-                          mac = '00:00:00:00:04:04',
-			  defaultRoute='via 10.0.4.40 dev eth0')
+                          defaultRoute='via 10.0.3.254 dev eth0')
 
-        self.addLink(h1, s1, delay='0ms', intfName2='r1-eth1', addr2="00:00:00:00:01:00")
-        self.addLink(h2, s1, delay='0ms', intfName2='r1-eth2', addr2="00:00:00:00:02:00")
-        self.addLink(h3, s2, delay=args.h3delay, intfName2='r2-eth1', addr2="00:00:00:00:03:00")
-        self.addLink(h4, s2, delay='0ms', intfName2='r2-eth2', addr2="00:00:00:00:04:00")
+        self.addLink(h1, s1, delay='0ms')
+        self.addLink(h2, s1, delay='0ms')
+        self.addLink(h3, s2, delay=args.h3delay)
+        self.addLink(h4, s2, delay='0ms')
 
-        #TODO: Fix addLink for the routers
-        #self.addLink(s1, aqm_switch,
-        #             intfName2='r1-eth1',
-        #             addr2="00:00:00:00:01:fe")
-        #self.addLink(s2, aqm_switch,
-        #             intfName2='r1-eth2',
-        #             addr2="00:00:00:00:02:fe")
-
-        self.addLink(s1,aqm_switch,intfName1='r1-eth3',intfName2='r0-eth1')
-        self.addLink(s2,aqm_switch,intfName1='r2-eth3',intfName2='r0-eth2')
-
+        self.addLink(s1, aqm_switch,
+                     intfName2='r1-eth1',
+                     addr2="00:00:00:00:01:fe")
+        self.addLink(s2, aqm_switch,
+                     intfName2='r1-eth2',
+                     addr2="00:00:00:00:02:fe")
 def main():
     p4 = True if args.useP4 is not None else False
 
@@ -149,34 +124,24 @@ def main():
 
     internet_hosts = ["h1", "h2"]
     homenet_hosts = ["h3", "h4"]
-    routers = ["r0", "r1", "r2"]
+    routers = ["r1"]
     for h in mn.hosts:
         print("disable ipv6")
-        print(h.name)
         h.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
         h.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
         h.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
-        if h.name == "h1":
-            h.setARP("10.0.1.10", "00:00:00:00:01:00")
-            h.setDefaultRoute("via 10.0.1.10 dev eth0")	
-	elif h.name == "h2":
-            h.setARP("10.0.2.20", "00:00:00:00:02:00")
-	    h.setDefaultRoute("via 10.0.2.20 dev eth0")
-	elif h.name == "h3":
-	    h.setARP("10.0.3.30", "00:00:00:00:03:00")
-	    h.setDefaultRoute("via 10.0.3.30 dev eth0")
-	elif h.name == "h4":
-	    h.setARP("10.0.4.40", "00:00:00:00:04:00")
-	    h.setDefaultRoute("via 10.0.4.40 dev eth0")
-        #elif h.name in homenet_hosts:
-            #h.setARP("10.0.2.254", "00:00:00:00:02:fe")
-            #h.setDefaultRoute("via 10.0.3.254 dev eth0")
+        if h.name in internet_hosts:
+            h.setARP("10.0.1.254", "00:00:00:00:01:fe")
+            h.setDefaultRoute("via 10.0.1.254 dev eth0")
+        elif h.name in homenet_hosts:
+            h.setARP("10.0.2.254", "00:00:00:00:02:fe")
+            h.setDefaultRoute("via 10.0.3.254 dev eth0")
         elif h.name in routers: #in case of linux kernel router
-            print(h.name)
+            print("router")
             h.setMAC("00:00:00:00:01:fe", intf="r1-eth1")
             h.setMAC("00:00:00:00:02:fe", intf="r1-eth2")
             h.setIP(ip="10.0.1.254", prefixLen=24, intf="r1-eth1")
-            h.setIP(ip="10.0.2.254", prefixLen=24, intf="r1-eth2")
+            h.setIP(ip="10.0.3.254", prefixLen=24, intf="r1-eth2")
             h.setARP("10.0.1.1", "00:00:00:00:01:01")
             h.setARP("10.0.1.2", "00:00:00:00:01:02")
             h.setARP("10.0.3.1", "00:00:00:00:02:01")
@@ -196,32 +161,23 @@ def main():
         r1.start()
 
         
-    #iperfTest = IperfTest()
+    iperfTest = IperfTest()
 
     if p4:
         sleep(1)
-	r1 = mn.getNodeByName('r1')
-        r1.setIP(ip="10.0.1.10", prefixLen=24, intf="r1-eth1")
-        r1.setIP(ip="10.0.2.20", prefixLen=24, intf="r1-eth2")
-
-	r2 = mn.getNodeByName('r2')
-        r2.setIP(ip="10.0.3.30", prefixLen=24, intf="r2-eth1")
-        r2.setIP(ip="10.0.4.40", prefixLen=24, intf="r2-eth2")
-
-        for i in range(3):
-            '''r1 = mn.getNodeByName('r%d'%(i))
-            r1.setIP(ip="10.0.%d.254"%(1+i), prefixLen=24, intf="r%d-eth1"%(i))
-            r1.setIP(ip="10.0.%d.254"%(3+i), prefixLen=24, intf="r%d-eth2"%(i))'''
-            cmd = [args.cli,  args.json, "2222%d"%(i+2)]
-            with open(args.cliCmd.split(',')[i], "r") as f:
-                print(" ".join(cmd))
-                try:
-                    print("Running %s" % cmd)
-                    output = subprocess.check_output(cmd, stdin = f)
-                    print(output)
-                except subprocess.CalledProcessError as e:
-                    print(e)
-                    print(e.output)
+        r1 = mn.getNodeByName('r1')
+        r1.setIP(ip="10.0.1.254", prefixLen=24, intf="r1-eth1")
+        r1.setIP(ip="10.0.3.254", prefixLen=24, intf="r1-eth2")
+        cmd = [args.cli,  args.json, str(22222)]
+        with open(args.cliCmd, "r") as f:
+            print(" ".join(cmd))
+            try:
+                print("Running %s" % cmd)
+                output = subprocess.check_output(cmd, stdin = f)
+                print(output)
+            except subprocess.CalledProcessError as e:
+                print(e)
+                print(e.output)
 
 
 
