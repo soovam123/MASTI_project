@@ -115,7 +115,7 @@ class MyTopo(Topo):
 			  defaultRoute='via 10.0.2.20 dev eth0')
         h3 = self.addHost('h3', ip = '10.0.3.3/24',
                           mac = '00:00:00:00:03:03',
-			  defaultRoute='via 10.0.1.30 dev eth0')                         
+			  defaultRoute='via 10.0.3.30 dev eth0')                         
         h4 = self.addHost('h4', ip = '10.0.4.4/24',
                           mac = '00:00:00:00:04:04',
 			  defaultRoute='via 10.0.4.40 dev eth0')
@@ -213,6 +213,7 @@ def main():
             r1.setIP(ip="10.0.%d.254"%(1+i), prefixLen=24, intf="r%d-eth1"%(i))
             r1.setIP(ip="10.0.%d.254"%(3+i), prefixLen=24, intf="r%d-eth2"%(i))'''
             cmd = [args.cli,  args.json, "2222%d"%(i+2)]
+            print(args.cliCmd)
             with open(args.cliCmd.split(',')[i], "r") as f:
                 print(" ".join(cmd))
                 try:

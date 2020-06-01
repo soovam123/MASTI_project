@@ -211,6 +211,8 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
             //exchange_address.apply();
         }
 
+        c_checksum_0.apply(hdr, meta);
+
         #ifdef ENABLE_DEBUG_TABLES
             debug_std_meta_egress_end.apply(standard_metadata);
         #endif  // ENABLE_DEBUG_TABLES

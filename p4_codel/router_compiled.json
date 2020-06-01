@@ -4,6 +4,8 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
+        ["tmp", 48, false],
+        ["cond", 1, false],
         ["userMetadata._codel_drop_time0", 48, false],
         ["userMetadata._codel_time_now1", 48, false],
         ["userMetadata._codel_ok_to_drop2", 1, false],
@@ -18,8 +20,8 @@
         ["userMetadata._codel_new_drop_time_helper11", 48, false],
         ["userMetadata._codel_queue_id12", 9, false],
         ["userMetadata._routing_metadata_tcpLength13", 16, false],
-        ["userMetadata._fwd_fptr14", 32, false],
-        ["_padding_0", 4, false]
+        ["userMetadata._fwd_to_monitor14", 8, false],
+        ["_padding_0", 3, false]
       ]
     },
     {
@@ -73,15 +75,8 @@
       ]
     },
     {
-      "name" : "queue_delay_t",
-      "id" : 4,
-      "fields" : [
-        ["delay", 32, false]
-      ]
-    },
-    {
       "name" : "tcp_t",
-      "id" : 5,
+      "id" : 4,
       "fields" : [
         ["srcPort", 16, false],
         ["dstPort", 16, false],
@@ -96,17 +91,18 @@
       ]
     },
     {
-      "name" : "tcp_opt_t",
-      "id" : 6,
+      "name" : "monitor_t",
+      "id" : 5,
       "fields" : [
-        ["a", 32, false],
-        ["b", 32, false],
-        ["c", 32, false]
+        ["if_monitor", 4, false],
+        ["received", 4, false],
+        ["send_time", 48, false],
+        ["relative_time", 48, false]
       ]
     },
     {
       "name" : "udp_t",
-      "id" : 7,
+      "id" : 6,
       "fields" : [
         ["sourcePort", 16, false],
         ["destPort", 16, false],
@@ -145,29 +141,22 @@
       "pi_omit" : true
     },
     {
-      "name" : "queue_delay",
-      "id" : 4,
-      "header_type" : "queue_delay_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
       "name" : "tcp",
-      "id" : 5,
+      "id" : 4,
       "header_type" : "tcp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "tcp_options",
-      "id" : 6,
-      "header_type" : "tcp_opt_t",
+      "name" : "monitor",
+      "id" : 5,
+      "header_type" : "monitor_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "udp",
-      "id" : 7,
+      "id" : 6,
       "header_type" : "udp_t",
       "metadata" : false,
       "pi_omit" : true
@@ -181,7 +170,78 @@
     {
       "id" : 1,
       "name" : "fl",
-      "elements" : []
+      "source_info" : {
+        "filename" : "srcP4/simple_router.p4",
+        "line" : 243,
+        "column" : 42,
+        "source_fragment" : "{standard_metadata}"
+      },
+      "elements" : [
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "ingress_port"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_spec"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_port"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "instance_type"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "packet_length"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "enq_timestamp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "enq_qdepth"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "deq_timedelta"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "deq_qdepth"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "ingress_global_timestamp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_global_timestamp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "mcast_grp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_rid"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "checksum_error"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "parser_error"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "priority"]
+        }
+      ]
     }
   ],
   "errors" : [
@@ -262,16 +322,7 @@
               "parameters" : [
                 {
                   "type" : "regular",
-                  "value" : "tcp_options"
-                }
-              ],
-              "op" : "extract"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "regular",
-                  "value" : "queue_delay"
+                  "value" : "monitor"
                 }
               ],
               "op" : "extract"
@@ -396,24 +447,37 @@
       "id" : 0,
       "source_info" : {
         "filename" : "srcP4/simple_router.p4",
-        "line" : 237,
+        "line" : 323,
         "column" : 8,
         "source_fragment" : "DeparserImpl"
       },
-      "order" : ["ethernet", "ipv4", "tcp", "tcp_options", "queue_delay", "udp"],
+      "order" : ["ethernet", "ipv4", "tcp", "monitor", "udp"],
       "primitives" : []
     }
   ],
   "meter_arrays" : [],
   "counter_arrays" : [],
-  "register_arrays" : [],
+  "register_arrays" : [
+    {
+      "name" : "r_recent_latency",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "srcP4/simple_router.p4",
+        "line" : 33,
+        "column" : 21,
+        "source_fragment" : "r_recent_latency"
+      },
+      "size" : 1,
+      "bitwidth" : 48
+    }
+  ],
   "calculations" : [
     {
       "name" : "calc",
       "id" : 0,
       "source_info" : {
         "filename" : "srcP4/tcp_checksum.p4",
-        "line" : 24,
+        "line" : 25,
         "column" : 8,
         "source_fragment" : "update_checksum(true, { hdr.ipv4.version, hdr.ipv4.ihl, hdr.ipv4.diffserv, ..."
       },
@@ -470,9 +534,9 @@
       "id" : 1,
       "source_info" : {
         "filename" : "srcP4/tcp_checksum.p4",
-        "line" : 28,
+        "line" : 30,
         "column" : 8,
-        "source_fragment" : "update_checksum_with_payload(hdr.tcp.isValid(), { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, ..."
+        "source_fragment" : "update_checksum_with_payload(hdr.monitor.isValid(), { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, ..."
       },
       "algo" : "csum16",
       "input" : [
@@ -535,11 +599,7 @@
         },
         {
           "type" : "header",
-          "value" : "tcp_options"
-        },
-        {
-          "type" : "header",
-          "value" : "queue_delay"
+          "value" : "monitor"
         },
         {
           "type" : "payload",
@@ -563,91 +623,34 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
+      "name" : "simple_router203",
       "id" : 2,
       "runtime_data" : [],
-      "primitives" : []
-    },
-    {
-      "name" : "egress.change_macs",
-      "id" : 3,
-      "runtime_data" : [
-        {
-          "name" : "smac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "dmac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "dip",
-          "bitwidth" : 32
-        }
-      ],
       "primitives" : [
         {
           "op" : "assign",
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["ethernet", "src_addr"]
+              "value" : ["monitor", "send_time"]
             },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 143,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.src_addr = smac"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
             {
               "type" : "field",
-              "value" : ["ethernet", "dst_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 1
+              "value" : ["standard_metadata", "egress_global_timestamp"]
             }
           ],
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 144,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.dst_addr = dmac"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "dstAddr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 2
-            }
-          ],
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 145,
-            "column" : 8,
-            "source_fragment" : "hdr.ipv4.dstAddr = dip"
+            "line" : 203,
+            "column" : 16,
+            "source_fragment" : "hdr.monitor.send_time = standard_metadata.egress_global_timestamp"
           }
         }
       ]
     },
     {
-      "name" : "queue_measurement21",
-      "id" : 4,
+      "name" : "simple_router209",
+      "id" : 3,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -655,25 +658,67 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["queue_delay", "delay"]
+              "value" : ["monitor", "received"]
             },
             {
-              "type" : "field",
-              "value" : ["standard_metadata", "deq_timedelta"]
+              "type" : "hexstr",
+              "value" : "0x01"
             }
           ],
           "source_info" : {
-            "filename" : "srcP4/queue_measurement.p4",
-            "line" : 21,
-            "column" : 16,
-            "source_fragment" : "hdr.queue_delay.delay = standard_metadata.deq_timedelta"
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 209,
+            "column" : 12,
+            "source_fragment" : "hdr.monitor.received = 4w1"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["monitor", "relative_time"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "-",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["standard_metadata", "egress_global_timestamp"]
+                      },
+                      "right" : {
+                        "type" : "field",
+                        "value" : ["standard_metadata", "ingress_global_timestamp"]
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffffffff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 210,
+            "column" : 12,
+            "source_fragment" : "hdr.monitor.relative_time = (standard_metadata.egress_global_timestamp - standard_metadata.ingress_global_timestamp"
           }
         }
       ]
     },
     {
-      "name" : "tcp_checksum37",
-      "id" : 5,
+      "name" : "tcp_checksum40",
+      "id" : 4,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -713,12 +758,18 @@
           ],
           "source_info" : {
             "filename" : "srcP4/tcp_checksum.p4",
-            "line" : 37,
+            "line" : 40,
             "column" : 40,
             "source_fragment" : "= meta.routing_metadata.tcpLength - 16w20; ..."
           }
         }
       ]
+    },
+    {
+      "name" : "NoAction",
+      "id" : 5,
+      "runtime_data" : [],
+      "primitives" : []
     },
     {
       "name" : "NoAction",
@@ -784,7 +835,7 @@
           ],
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 188,
+            "line" : 232,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = egress_spec"
           }
@@ -803,10 +854,77 @@
           ],
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 189,
+            "line" : 233,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dst_mac"
           }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "cond"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "d2b",
+                      "left" : null,
+                      "right" : {
+                        "type" : "field",
+                        "value" : ["monitor", "$valid$"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "userMetadata._fwd_to_monitor14"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "?",
+                  "left" : {
+                    "type" : "hexstr",
+                    "value" : "0x0a"
+                  },
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["scalars", "userMetadata._fwd_to_monitor14"]
+                  },
+                  "cond" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "d2b",
+                      "left" : null,
+                      "right" : {
+                        "type" : "field",
+                        "value" : ["scalars", "cond"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -814,10 +932,6 @@
       "name" : "ingress.clone_i2e",
       "id" : 13,
       "runtime_data" : [
-        {
-          "name" : "fptr",
-          "bitwidth" : 32
-        },
         {
           "name" : "session_id",
           "bitwidth" : 32
@@ -829,7 +943,7 @@
           "parameters" : [
             {
               "type" : "runtime_data",
-              "value" : 1
+              "value" : 0
             },
             {
               "type" : "hexstr",
@@ -838,9 +952,57 @@
           ],
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 195,
+            "line" : 243,
             "column" : 8,
-            "source_fragment" : "clone(CloneType.I2E, session_id)"
+            "source_fragment" : "clone3(CloneType.I2E, session_id, {standard_metadata})"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "ingress.drop_packet",
+      "id" : 14,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 248,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "ingress.set_monitor_vars",
+      "id" : 15,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["monitor", "if_monitor"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 252,
+            "column" : 8,
+            "source_fragment" : "hdr.monitor.if_monitor = 0"
           }
         },
         {
@@ -848,18 +1010,194 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "userMetadata._fwd_fptr14"]
+              "value" : ["monitor", "received"]
             },
             {
-              "type" : "runtime_data",
-              "value" : 0
+              "type" : "hexstr",
+              "value" : "0x00"
             }
           ],
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 196,
+            "line" : 253,
             "column" : 8,
-            "source_fragment" : "meta.fwd.fptr = fptr"
+            "source_fragment" : "hdr.monitor.received = 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["monitor", "send_time"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x000000000000"
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 254,
+            "column" : 8,
+            "source_fragment" : "hdr.monitor.send_time = 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["monitor", "relative_time"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x000000000000"
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 255,
+            "column" : 8,
+            "source_fragment" : "hdr.monitor.relative_time = 0"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "simple_router303",
+      "id" : 16,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : ">>",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : "-",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["standard_metadata", "ingress_global_timestamp"]
+                              },
+                              "right" : {
+                                "type" : "expression",
+                                "value" : {
+                                  "op" : "&",
+                                  "left" : {
+                                    "type" : "expression",
+                                    "value" : {
+                                      "op" : "+",
+                                      "left" : {
+                                        "type" : "field",
+                                        "value" : ["monitor", "send_time"]
+                                      },
+                                      "right" : {
+                                        "type" : "field",
+                                        "value" : ["monitor", "relative_time"]
+                                      }
+                                    }
+                                  },
+                                  "right" : {
+                                    "type" : "hexstr",
+                                    "value" : "0xffffffffffff"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x2"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffffffff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 302,
+            "column" : 34,
+            "source_fragment" : "(standard_metadata.ingress_global_timestamp - (hdr.monitor.send_time + hdr.monitor.relative_time)) >> 2"
+          }
+        },
+        {
+          "op" : "register_write",
+          "parameters" : [
+            {
+              "type" : "register_array",
+              "value" : "r_recent_latency"
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00000001"
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 303,
+            "column" : 16,
+            "source_fragment" : "r_recent_latency.write(1,latency)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "simple_router307",
+      "id" : 17,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["monitor", "if_monitor"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01"
+            }
+          ],
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 307,
+            "column" : 16,
+            "source_fragment" : "hdr.monitor.if_monitor = 4w1"
           }
         }
       ]
@@ -871,7 +1209,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "srcP4/simple_router.p4",
-        "line" : 179,
+        "line" : 223,
         "column" : 8,
         "source_fragment" : "ingress"
       },
@@ -882,7 +1220,445 @@
           "id" : 0,
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 84,
+            "line" : 107,
+            "column" : 10,
+            "source_fragment" : "dbg_table"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.ingress_port",
+              "target" : ["standard_metadata", "ingress_port"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.egress_spec",
+              "target" : ["standard_metadata", "egress_spec"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.egress_port",
+              "target" : ["standard_metadata", "egress_port"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.instance_type",
+              "target" : ["standard_metadata", "instance_type"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.packet_length",
+              "target" : ["standard_metadata", "packet_length"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.enq_timestamp",
+              "target" : ["standard_metadata", "enq_timestamp"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.enq_qdepth",
+              "target" : ["standard_metadata", "enq_qdepth"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.deq_timedelta",
+              "target" : ["standard_metadata", "deq_timedelta"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.deq_qdepth",
+              "target" : ["standard_metadata", "deq_qdepth"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.ingress_global_timestamp",
+              "target" : ["standard_metadata", "ingress_global_timestamp"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.egress_global_timestamp",
+              "target" : ["standard_metadata", "egress_global_timestamp"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.mcast_grp",
+              "target" : ["standard_metadata", "mcast_grp"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.egress_rid",
+              "target" : ["standard_metadata", "egress_rid"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.checksum_error",
+              "target" : ["standard_metadata", "checksum_error"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [5],
+          "actions" : ["NoAction"],
+          "base_default_next" : "ingress.my_debug_1_1.dbg_table",
+          "next_tables" : {
+            "NoAction" : "ingress.my_debug_1_1.dbg_table"
+          },
+          "default_entry" : {
+            "action_id" : 5,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "ingress.my_debug_1_1.dbg_table",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 142,
+            "column" : 10,
+            "source_fragment" : "dbg_table"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "hdr.ipv4.dstAddr",
+              "target" : ["ipv4", "dstAddr"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.if_monitor",
+              "target" : ["monitor", "if_monitor"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.received",
+              "target" : ["monitor", "received"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.send_time",
+              "target" : ["monitor", "send_time"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.relative_time",
+              "target" : ["monitor", "relative_time"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [7],
+          "actions" : ["NoAction"],
+          "base_default_next" : "node_4",
+          "next_tables" : {
+            "NoAction" : "node_4"
+          },
+          "default_entry" : {
+            "action_id" : 7,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "ingress.set_init_monitor",
+          "id" : 2,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 258,
+            "column" : 10,
+            "source_fragment" : "set_init_monitor"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.ingress_port",
+              "target" : ["standard_metadata", "ingress_port"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [15, 9],
+          "actions" : ["ingress.set_monitor_vars", "NoAction"],
+          "base_default_next" : "node_6",
+          "next_tables" : {
+            "ingress.set_monitor_vars" : "node_6",
+            "NoAction" : "node_6"
+          },
+          "default_entry" : {
+            "action_id" : 9,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "ingress.cloning",
+          "id" : 3,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 267,
+            "column" : 10,
+            "source_fragment" : "cloning"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.ingress_port",
+              "target" : ["standard_metadata", "ingress_port"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [13, 10],
+          "actions" : ["ingress.clone_i2e", "NoAction"],
+          "base_default_next" : "ingress.forwarding",
+          "next_tables" : {
+            "ingress.clone_i2e" : "ingress.forwarding",
+            "NoAction" : "ingress.forwarding"
+          },
+          "default_entry" : {
+            "action_id" : 10,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "ingress.forwarding",
+          "id" : 4,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 276,
+            "column" : 10,
+            "source_fragment" : "forwarding"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "standard_metadata.ingress_port",
+              "target" : ["standard_metadata", "ingress_port"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.ipv4.dstAddr",
+              "target" : ["ipv4", "dstAddr"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [12, 11],
+          "actions" : ["ingress.forward", "NoAction"],
+          "base_default_next" : "ingress.my_debug_1_2.dbg_table",
+          "next_tables" : {
+            "ingress.forward" : "ingress.my_debug_1_2.dbg_table",
+            "NoAction" : "ingress.my_debug_1_2.dbg_table"
+          },
+          "default_entry" : {
+            "action_id" : 11,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "tbl_simple_router303",
+          "id" : 5,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 303,
+            "column" : 16,
+            "source_fragment" : "r_recent_latency.write(1,latency)"
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [16],
+          "actions" : ["simple_router303"],
+          "base_default_next" : "tbl_drop_packet",
+          "next_tables" : {
+            "simple_router303" : "tbl_drop_packet"
+          },
+          "default_entry" : {
+            "action_id" : 16,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_drop_packet",
+          "id" : 6,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 304,
+            "column" : 16,
+            "source_fragment" : "drop_packet()"
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [14],
+          "actions" : ["ingress.drop_packet"],
+          "base_default_next" : "ingress.my_debug_1_2.dbg_table",
+          "next_tables" : {
+            "ingress.drop_packet" : "ingress.my_debug_1_2.dbg_table"
+          },
+          "default_entry" : {
+            "action_id" : 14,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_simple_router307",
+          "id" : 7,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 307,
+            "column" : 39,
+            "source_fragment" : "="
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [17],
+          "actions" : ["simple_router307"],
+          "base_default_next" : "ingress.forwarding",
+          "next_tables" : {
+            "simple_router307" : "ingress.forwarding"
+          },
+          "default_entry" : {
+            "action_id" : 17,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "ingress.my_debug_1_2.dbg_table",
+          "id" : 8,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 142,
+            "column" : 10,
+            "source_fragment" : "dbg_table"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "hdr.ipv4.dstAddr",
+              "target" : ["ipv4", "dstAddr"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.if_monitor",
+              "target" : ["monitor", "if_monitor"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.received",
+              "target" : ["monitor", "received"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.send_time",
+              "target" : ["monitor", "send_time"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
+              "name" : "hdr.monitor.relative_time",
+              "target" : ["monitor", "relative_time"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [8],
+          "actions" : ["NoAction"],
+          "base_default_next" : "ingress.debug_std_meta_ingress_end.dbg_table",
+          "next_tables" : {
+            "NoAction" : "ingress.debug_std_meta_ingress_end.dbg_table"
+          },
+          "default_entry" : {
+            "action_id" : 8,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "ingress.debug_std_meta_ingress_end.dbg_table",
+          "id" : 9,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 107,
             "column" : 10,
             "source_fragment" : "dbg_table"
           },
@@ -980,9 +1756,9 @@
           "direct_meters" : null,
           "action_ids" : [6],
           "actions" : ["NoAction"],
-          "base_default_next" : "ingress.my_debug_1_1.dbg_table",
+          "base_default_next" : null,
           "next_tables" : {
-            "NoAction" : "ingress.my_debug_1_1.dbg_table"
+            "NoAction" : null
           },
           "default_entry" : {
             "action_id" : 6,
@@ -990,301 +1766,113 @@
             "action_data" : [],
             "action_entry_const" : true
           }
-        },
-        {
-          "name" : "ingress.my_debug_1_1.dbg_table",
-          "id" : 1,
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 119,
-            "column" : 10,
-            "source_fragment" : "dbg_table"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "name" : "hdr.ipv4.dstAddr",
-              "target" : ["ipv4", "dstAddr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "meta.fwd.fptr",
-              "target" : ["scalars", "userMetadata._fwd_fptr14"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [8],
-          "actions" : ["NoAction"],
-          "base_default_next" : "ingress.forwarding",
-          "next_tables" : {
-            "NoAction" : "ingress.forwarding"
-          },
-          "default_entry" : {
-            "action_id" : 8,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "ingress.forwarding",
-          "id" : 2,
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 209,
-            "column" : 10,
-            "source_fragment" : "forwarding"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.ingress_port",
-              "target" : ["standard_metadata", "ingress_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "hdr.ipv4.dstAddr",
-              "target" : ["ipv4", "dstAddr"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [12, 11],
-          "actions" : ["ingress.forward", "NoAction"],
-          "base_default_next" : "ingress.cloning",
-          "next_tables" : {
-            "ingress.forward" : "ingress.cloning",
-            "NoAction" : "ingress.cloning"
-          },
-          "default_entry" : {
-            "action_id" : 11,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
-          "name" : "ingress.cloning",
-          "id" : 3,
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 199,
-            "column" : 10,
-            "source_fragment" : "cloning"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.ingress_port",
-              "target" : ["standard_metadata", "ingress_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "hdr.ipv4.dstAddr",
-              "target" : ["ipv4", "dstAddr"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [13, 10],
-          "actions" : ["ingress.clone_i2e", "NoAction"],
-          "base_default_next" : "ingress.my_debug_1_2.dbg_table",
-          "next_tables" : {
-            "ingress.clone_i2e" : "ingress.my_debug_1_2.dbg_table",
-            "NoAction" : "ingress.my_debug_1_2.dbg_table"
-          },
-          "default_entry" : {
-            "action_id" : 10,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
-          "name" : "ingress.my_debug_1_2.dbg_table",
-          "id" : 4,
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 119,
-            "column" : 10,
-            "source_fragment" : "dbg_table"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "name" : "hdr.ipv4.dstAddr",
-              "target" : ["ipv4", "dstAddr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "meta.fwd.fptr",
-              "target" : ["scalars", "userMetadata._fwd_fptr14"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [9],
-          "actions" : ["NoAction"],
-          "base_default_next" : "ingress.debug_std_meta_ingress_end.dbg_table",
-          "next_tables" : {
-            "NoAction" : "ingress.debug_std_meta_ingress_end.dbg_table"
-          },
-          "default_entry" : {
-            "action_id" : 9,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "ingress.debug_std_meta_ingress_end.dbg_table",
-          "id" : 5,
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 84,
-            "column" : 10,
-            "source_fragment" : "dbg_table"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.ingress_port",
-              "target" : ["standard_metadata", "ingress_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.egress_spec",
-              "target" : ["standard_metadata", "egress_spec"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.egress_port",
-              "target" : ["standard_metadata", "egress_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.instance_type",
-              "target" : ["standard_metadata", "instance_type"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.packet_length",
-              "target" : ["standard_metadata", "packet_length"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.enq_timestamp",
-              "target" : ["standard_metadata", "enq_timestamp"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.enq_qdepth",
-              "target" : ["standard_metadata", "enq_qdepth"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.deq_timedelta",
-              "target" : ["standard_metadata", "deq_timedelta"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.deq_qdepth",
-              "target" : ["standard_metadata", "deq_qdepth"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.ingress_global_timestamp",
-              "target" : ["standard_metadata", "ingress_global_timestamp"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.egress_global_timestamp",
-              "target" : ["standard_metadata", "egress_global_timestamp"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.mcast_grp",
-              "target" : ["standard_metadata", "mcast_grp"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.egress_rid",
-              "target" : ["standard_metadata", "egress_rid"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "name" : "standard_metadata.checksum_error",
-              "target" : ["standard_metadata", "checksum_error"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [7],
-          "actions" : ["NoAction"],
-          "base_default_next" : null,
-          "next_tables" : {
-            "NoAction" : null
-          },
-          "default_entry" : {
-            "action_id" : 7,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
         }
       ],
       "action_profiles" : [],
-      "conditionals" : []
+      "conditionals" : [
+        {
+          "name" : "node_4",
+          "id" : 0,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 292,
+            "column" : 12,
+            "source_fragment" : "hdr.monitor.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "d2b",
+              "left" : null,
+              "right" : {
+                "type" : "field",
+                "value" : ["monitor", "$valid$"]
+              }
+            }
+          },
+          "true_next" : "ingress.set_init_monitor",
+          "false_next" : "ingress.forwarding"
+        },
+        {
+          "name" : "node_6",
+          "id" : 1,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 295,
+            "column" : 16,
+            "source_fragment" : "hdr.monitor.received == 0 && hdr.monitor.if_monitor != 4w0"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "and",
+              "left" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "==",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["monitor", "received"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x00"
+                  }
+                }
+              },
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "!=",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["monitor", "if_monitor"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x00"
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "ingress.cloning",
+          "false_next" : "node_9"
+        },
+        {
+          "name" : "node_9",
+          "id" : 2,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 300,
+            "column" : 21,
+            "source_fragment" : "hdr.monitor.received != 0"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "!=",
+              "left" : {
+                "type" : "field",
+                "value" : ["monitor", "received"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x00"
+              }
+            }
+          },
+          "true_next" : "tbl_simple_router303",
+          "false_next" : "tbl_simple_router307"
+        }
+      ]
     },
     {
       "name" : "egress",
       "id" : 1,
       "source_info" : {
         "filename" : "srcP4/simple_router.p4",
-        "line" : 133,
+        "line" : 160,
         "column" : 8,
         "source_fragment" : "egress"
       },
@@ -1292,10 +1880,10 @@
       "tables" : [
         {
           "name" : "egress.debug_std_meta_egress_start.dbg_table",
-          "id" : 6,
+          "id" : 10,
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 84,
+            "line" : 107,
             "column" : 10,
             "source_fragment" : "dbg_table"
           },
@@ -1393,9 +1981,9 @@
           "direct_meters" : null,
           "action_ids" : [0],
           "actions" : ["NoAction"],
-          "base_default_next" : "node_11",
+          "base_default_next" : "node_20",
           "next_tables" : {
-            "NoAction" : "node_11"
+            "NoAction" : "node_20"
           },
           "default_entry" : {
             "action_id" : 0,
@@ -1405,11 +1993,11 @@
           }
         },
         {
-          "name" : "tbl_queue_measurement21",
-          "id" : 7,
+          "name" : "tbl_simple_router203",
+          "id" : 11,
           "source_info" : {
-            "filename" : "srcP4/queue_measurement.p4",
-            "line" : 21,
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 203,
             "column" : 38,
             "source_fragment" : "="
           },
@@ -1420,25 +2008,54 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [4],
-          "actions" : ["queue_measurement21"],
-          "base_default_next" : "tbl_tcp_checksum37",
+          "action_ids" : [2],
+          "actions" : ["simple_router203"],
+          "base_default_next" : "node_23",
           "next_tables" : {
-            "queue_measurement21" : "tbl_tcp_checksum37"
+            "simple_router203" : "node_23"
           },
           "default_entry" : {
-            "action_id" : 4,
+            "action_id" : 2,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_tcp_checksum37",
-          "id" : 8,
+          "name" : "tbl_simple_router209",
+          "id" : 12,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 209,
+            "column" : 33,
+            "source_fragment" : "= 4w1; ..."
+          },
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [3],
+          "actions" : ["simple_router209"],
+          "base_default_next" : "tbl_tcp_checksum40",
+          "next_tables" : {
+            "simple_router209" : "tbl_tcp_checksum40"
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_tcp_checksum40",
+          "id" : 13,
           "source_info" : {
             "filename" : "srcP4/tcp_checksum.p4",
-            "line" : 37,
+            "line" : 40,
             "column" : 40,
             "source_fragment" : "="
           },
@@ -1449,62 +2066,25 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [5],
-          "actions" : ["tcp_checksum37"],
-          "base_default_next" : "node_15",
+          "action_ids" : [4],
+          "actions" : ["tcp_checksum40"],
+          "base_default_next" : "egress.debug_std_meta_egress_end.dbg_table",
           "next_tables" : {
-            "tcp_checksum37" : "node_15"
+            "tcp_checksum40" : "egress.debug_std_meta_egress_end.dbg_table"
           },
           "default_entry" : {
-            "action_id" : 5,
+            "action_id" : 4,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "egress.exchange_mac",
-          "id" : 9,
-          "source_info" : {
-            "filename" : "srcP4/simple_router.p4",
-            "line" : 148,
-            "column" : 10,
-            "source_fragment" : "exchange_mac"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "name" : "hdr.ipv4.srcAddr",
-              "target" : ["ipv4", "srcAddr"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [3, 2],
-          "actions" : ["egress.change_macs", "NoAction"],
-          "base_default_next" : "egress.debug_std_meta_egress_end.dbg_table",
-          "next_tables" : {
-            "egress.change_macs" : "egress.debug_std_meta_egress_end.dbg_table",
-            "NoAction" : "egress.debug_std_meta_egress_end.dbg_table"
-          },
-          "default_entry" : {
-            "action_id" : 2,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
           "name" : "egress.debug_std_meta_egress_end.dbg_table",
-          "id" : 10,
+          "id" : 14,
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 84,
+            "line" : 107,
             "column" : 10,
             "source_fragment" : "dbg_table"
           },
@@ -1617,39 +2197,13 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_11",
-          "id" : 0,
+          "name" : "node_20",
+          "id" : 3,
           "source_info" : {
-            "filename" : "srcP4/queue_measurement.p4",
-            "line" : 19,
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 199,
             "column" : 12,
-            "source_fragment" : "hdr.ipv4.totalLen > 16w500"
-          },
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : ">",
-              "left" : {
-                "type" : "field",
-                "value" : ["ipv4", "totalLen"]
-              },
-              "right" : {
-                "type" : "hexstr",
-                "value" : "0x01f4"
-              }
-            }
-          },
-          "true_next" : "node_12",
-          "false_next" : "tbl_tcp_checksum37"
-        },
-        {
-          "name" : "node_12",
-          "id" : 1,
-          "source_info" : {
-            "filename" : "srcP4/queue_measurement.p4",
-            "line" : 20,
-            "column" : 16,
-            "source_fragment" : "hdr.queue_delay.isValid()"
+            "source_fragment" : "hdr.monitor.isValid()"
           },
           "expression" : {
             "type" : "expression",
@@ -1658,19 +2212,45 @@
               "left" : null,
               "right" : {
                 "type" : "field",
-                "value" : ["queue_delay", "$valid$"]
+                "value" : ["monitor", "$valid$"]
               }
             }
           },
-          "true_next" : "tbl_queue_measurement21",
-          "false_next" : "tbl_tcp_checksum37"
+          "true_next" : "node_21",
+          "false_next" : "node_23"
         },
         {
-          "name" : "node_15",
-          "id" : 2,
+          "name" : "node_21",
+          "id" : 4,
           "source_info" : {
             "filename" : "srcP4/simple_router.p4",
-            "line" : 168,
+            "line" : 200,
+            "column" : 16,
+            "source_fragment" : "meta.fwd.to_monitor != 0"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "!=",
+              "left" : {
+                "type" : "field",
+                "value" : ["scalars", "userMetadata._fwd_to_monitor14"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x00"
+              }
+            }
+          },
+          "true_next" : "tbl_simple_router203",
+          "false_next" : "node_23"
+        },
+        {
+          "name" : "node_23",
+          "id" : 5,
+          "source_info" : {
+            "filename" : "srcP4/simple_router.p4",
+            "line" : 206,
             "column" : 12,
             "source_fragment" : "standard_metadata.instance_type == 1"
           },
@@ -1688,8 +2268,8 @@
               }
             }
           },
-          "true_next" : "egress.exchange_mac",
-          "false_next" : "egress.debug_std_meta_egress_end.dbg_table"
+          "true_next" : "tbl_simple_router209",
+          "false_next" : "tbl_tcp_checksum40"
         }
       ]
     }
@@ -1700,7 +2280,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "srcP4/tcp_checksum.p4",
-        "line" : 24,
+        "line" : 25,
         "column" : 8,
         "source_fragment" : "update_checksum(true, { hdr.ipv4.version, hdr.ipv4.ihl, hdr.ipv4.diffserv, ..."
       },
@@ -1719,9 +2299,9 @@
       "id" : 1,
       "source_info" : {
         "filename" : "srcP4/tcp_checksum.p4",
-        "line" : 28,
+        "line" : 30,
         "column" : 8,
-        "source_fragment" : "update_checksum_with_payload(hdr.tcp.isValid(), { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, ..."
+        "source_fragment" : "update_checksum_with_payload(hdr.monitor.isValid(), { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, ..."
       },
       "target" : ["tcp", "checksum"],
       "type" : "generic",
@@ -1735,7 +2315,7 @@
           "left" : null,
           "right" : {
             "type" : "field",
-            "value" : ["tcp", "$valid$"]
+            "value" : ["monitor", "$valid$"]
           }
         }
       }
