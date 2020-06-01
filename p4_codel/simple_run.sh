@@ -56,5 +56,5 @@ sudo PYTHONPATH=$PYTHONPATH:../behavioral-model/mininet/ \
     -p4 \
     --json ./router_compiled.json \
     --cli ../behavioral-model/targets/simple_switch/sswitch_CLI  \
-    --cliCmd srcP4/commandsRouterSimple.txt \
+    --cliCmd srcP4/commandsRouterSimple_r0.txt,srcP4/commandsRouterSimple_r1.txt,srcP4/commandsRouterSimple_r2.txt \
     $argsCommand
