@@ -19,8 +19,11 @@
 
 #define add_queue_delay
 #define ENABLE_DEBUG_TABLES
+//#define CODEL_IMPLEMENTED
+#define MONITOR_ENABLED
 
 #include "header.p4"
+#include "codel.p4"
 
 #ifdef add_queue_delay
 //#include "queue_measurement.p4"
@@ -28,9 +31,13 @@
 #endif
 
 #define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
-#define NUM_PORT 1
+#define NUM_PORT 2
 #define REGISTER_ID 1
+#define MONITORING_INTERVAL 100000      // 100 ms monitoring interval
+#define MAX_PACKET_LATENCY 30000         // 1 ms of application packet delay limit
+
 register<bit<48>>(NUM_PORT) r_recent_latency;
+register<bit<48>>(NUM_PORT) r_last_monitor_time;
 
 //const bit<32> BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE = 1;
 
@@ -50,17 +57,8 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
         }
     }
 
-    /*
     state parse_payload {
         packet.extract(hdr.tcp_options);
-	#ifdef add_queue_delay
-        packet.extract(hdr.queue_delay);
-	#endif
-        transition accept;
-    }
-    */
-
-    state parse_payload {
         packet.extract(hdr.monitor);
         transition accept;
     }
@@ -68,21 +66,12 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
     state parse_tcp {
         packet.extract(hdr.tcp);
         transition select(hdr.tcp.dataOffset) {
-            4w0x8: parse_payload;
+            #ifdef MONITOR_ENABLED
+                4w0x8: parse_payload;
+            #endif
+
             default: accept;
         }
-        //packet.extract(hdr.monitor);
-    /*    
-	#ifdef add_queue_delay
-        transition select(hdr.tcp.dataOffset) {
-            4w0x8: parse_payload;
-            default: accept;
-        }
-	#else
-	transition accept;
-	#endif
-    */
-        //transition accept;
     }
 
     state parse_udp {
@@ -146,6 +135,7 @@ control my_debug_1(in headers hdr, in metadata meta)
             hdr.monitor.received: exact;
             hdr.monitor.send_time: exact;
             hdr.monitor.relative_time: exact;
+            hdr.monitor.time_left: exact;
             //meta.fwd.fptr : exact;
         }
         actions = { NoAction; }
@@ -158,10 +148,17 @@ control my_debug_1(in headers hdr, in metadata meta)
 #endif  // ENABLE_DEBUG_TABLES
 
 control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+    
     #ifdef ENABLE_DEBUG_TABLES
         debug_std_meta() debug_std_meta_egress_start;
         debug_std_meta() debug_std_meta_egress_end;
+        my_debug_1() my_debug_2_1;
+        my_debug_1() my_debug_2_2;
     #endif  // ENABLE_DEBUG_TABLES
+
+    #ifdef CODEL_IMPLEMENTED
+        c_codel() c_codel_0;
+    #endif 
 
     c_checksum() c_checksum_0;
     //c_add_queue_delay() c_add_queue_delay_0;
@@ -183,44 +180,66 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
         }
     }
     */
+
+    action drop_packet() {
+        mark_to_drop(standard_metadata);
+    }
+
     apply {
     
         #ifdef ENABLE_DEBUG_TABLES
             debug_std_meta_egress_start.apply(standard_metadata);
+            my_debug_2_1.apply(hdr, meta);
         #endif  // ENABLE_DEBUG_TABLES 
         
-        /*
-        #ifdef add_queue_delay
-            c_add_queue_delay_0.apply(hdr, standard_metadata);
-            c_checksum_0.apply(hdr, meta);
-        #endif
-        */
 
-        if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500) {
+
+        if (hdr.monitor.isValid()  && hdr.ipv4.totalLen > 500) {
             if (meta.fwd.to_monitor != 0) {
                 // Packet to be sent to monitor
 
                 hdr.monitor.send_time = standard_metadata.egress_global_timestamp;
             }
-        }
-        if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
-            // Packet is a clone to reply back with monitor data
 
-            hdr.monitor.received = 4w1;
-            hdr.monitor.relative_time = (standard_metadata.egress_global_timestamp - standard_metadata.ingress_global_timestamp);
-            //exchange_address.apply();
+            if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
+                // Packet is a clone to reply back with monitor data
+                hdr.ipv4.dstAddr = hdr.ipv4.srcAddr;
+                hdr.monitor.received = 4w1;
+                hdr.monitor.relative_time = (standard_metadata.egress_global_timestamp - standard_metadata.ingress_global_timestamp);
+                //exchange_address.apply();
+            }
+            else {
+                r_recent_latency.read(meta.l_latency.recent_latency, REGISTER_ID);
+                bit<48> time_to_reach = standard_metadata.egress_global_timestamp - standard_metadata.ingress_global_timestamp + meta.l_latency.recent_latency;
+                if (time_to_reach >= hdr.monitor.time_left) {
+                    drop_packet();
+                }
+                else {
+                    hdr.monitor.time_left = hdr.monitor.time_left - time_to_reach;
+                }
+            }
         }
 
+        #ifdef CODEL_IMPLEMENTED
+            if (standard_metadata.ingress_port == 9w1) {
+	            meta.codel.queue_id = standard_metadata.egress_port;
+                c_codel_0.apply(hdr, meta, standard_metadata);
+            }
+        #endif
         c_checksum_0.apply(hdr, meta);
+
+
 
         #ifdef ENABLE_DEBUG_TABLES
             debug_std_meta_egress_end.apply(standard_metadata);
+            my_debug_2_2.apply(hdr, meta);
         #endif  // ENABLE_DEBUG_TABLES
 
     }
 }
 
 control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+    
     #ifdef ENABLE_DEBUG_TABLES
         debug_std_meta() debug_std_meta_ingress_start;
         debug_std_meta() debug_std_meta_ingress_end;
@@ -232,7 +251,7 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         standard_metadata.egress_spec = egress_spec;
         hdr.ethernet.dst_addr = dst_mac;
 
-        if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500){
+        if (hdr.monitor.isValid()){
             meta.fwd.to_monitor = 8w10;             // packet going to monitor
         }             
     }
@@ -253,7 +272,17 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         hdr.monitor.received = 0;
         hdr.monitor.send_time = 0;
         hdr.monitor.relative_time = 0;
+        hdr.monitor.time_left = MAX_PACKET_LATENCY;
+
+        // Check if it should be a monitor packet 
+
+        meta.fwd.time_now = standard_metadata.ingress_global_timestamp;
+        r_last_monitor_time.read(meta.fwd.last_time,REGISTER_ID);
+        if (meta.fwd.time_now - meta.fwd.last_time > MONITORING_INTERVAL) {
+            meta.fwd.set_for_monitoring = 1;
+        }
     }
+    
 
     table set_init_monitor {
         actions = {
@@ -285,32 +314,48 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     }
 
     apply {
+        
         #ifdef ENABLE_DEBUG_TABLES
             debug_std_meta_ingress_start.apply(standard_metadata);
             my_debug_1_1.apply(hdr, meta);
         #endif  // ENABLE_DEBUG_TABLES
+
+
+
         if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500) {
             set_init_monitor.apply();
 
-            if (hdr.monitor.received == 0 && hdr.monitor.if_monitor != 4w0) {
-                // The packet received is a monitoring packet
-                cloning.apply();
-                forwarding.apply();
-            }
-            else if (hdr.monitor.received != 0) {
-                // The packet received is the cloned monitored packet
-                bit<48> latency = (standard_metadata.ingress_global_timestamp - (hdr.monitor.send_time + hdr.monitor.relative_time)) >> 2;
-                r_recent_latency.write(REGISTER_ID,latency);
-                drop_packet();
+            if (meta.fwd.set_for_monitoring == 1 || hdr.monitor.if_monitor == 1) {
+                
+                if (meta.fwd.set_for_monitoring == 1) {
+                    r_last_monitor_time.write(REGISTER_ID,meta.fwd.time_now);
+                }
+
+                if (hdr.monitor.received == 0 && hdr.monitor.if_monitor != 4w0) {
+                    // The packet received is a monitoring packet
+                    cloning.apply();
+                    forwarding.apply();
+                }
+                else if (hdr.monitor.received != 0) {
+                    // The packet received is the cloned monitored packet
+                    bit<48> latency = (standard_metadata.ingress_global_timestamp - (hdr.monitor.send_time + hdr.monitor.relative_time)) >> 1;
+                    r_recent_latency.write(REGISTER_ID,latency);
+                    drop_packet();
+                }
+                else {
+                    hdr.monitor.if_monitor = 4w1;
+                    forwarding.apply();
+                }
             }
             else {
-                hdr.monitor.if_monitor = 4w1;
                 forwarding.apply();
             }
         }
         else {
             forwarding.apply();
         }
+
+
 
         #ifdef ENABLE_DEBUG_TABLES
             my_debug_1_2.apply(hdr, meta);
@@ -325,7 +370,7 @@ control DeparserImpl(packet_out packet, in headers hdr) {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.tcp);
-        //packet.emit(hdr.tcp_options);
+        packet.emit(hdr.tcp_options);
         //packet.emit(hdr.queue_delay);
         packet.emit(hdr.monitor);
         packet.emit(hdr.udp);

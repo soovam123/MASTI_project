@@ -75,13 +75,16 @@ header tcp_t {
     bit<16> urgentPtr;
 }
 
-/*
+
 header tcp_opt_t {
     bit<32> a;
     bit<32> b;
     bit<32> c;
+    bit<32> d;
+    bit<32> e;
 }
 
+/*
 header queue_delay_t {
     bit<32> delay;
 }
@@ -92,6 +95,7 @@ header monitor_t {
     bit<4> received;
     bit<48> send_time;
     bit<48> relative_time;
+    bit<48> time_left;
 }
 
 struct headers {
@@ -100,18 +104,26 @@ struct headers {
     //queue_delay_t queue_delay; 
     tcp_t         tcp; 
     monitor_t     monitor;
-    //tcp_opt_t     tcp_options; 
+    tcp_opt_t     tcp_options; 
     udp_t         udp;
 }
 
 struct fwd_t {
     bit<8> to_monitor;
+    bit<8> set_for_monitoring;
+    bit<48> time_now;
+    bit<48> last_time;
+}
+
+struct latency_t {
+    bit<48> recent_latency;
 }
 
 struct metadata {
     codel_t             codel; 
     routing_metadata_t  routing_metadata;
     fwd_t               fwd;
+    latency_t           l_latency;
 }
 
 

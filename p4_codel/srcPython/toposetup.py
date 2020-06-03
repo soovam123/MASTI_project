@@ -60,7 +60,7 @@ parser.add_argument('--h3delay', help='The delay between h3 and s2. Example: "30
 parser.set_defaults(h3delay="2ms")
 parser.add_argument('--iperft', help='The transmit time of iperf3 in seconds. Example: 30',
                     type=int, action="store")
-parser.set_defaults(iperft=10)
+parser.set_defaults(iperft=50)
 
 args = parser.parse_args()
 

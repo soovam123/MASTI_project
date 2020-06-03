@@ -61,7 +61,7 @@ def parse_ping_trace(folder, dropFirstN=0):
 def parse_pcap_trace(folder):
     # TODO: set the packets_in and packets_out for the links/interfaces we want to test; Maybe make this a cli arg?
     packets_in = rdpcap(os.path.join(folder, "r1-eth1_out.pcap"))
-    packets_out = rdpcap(os.path.join(folder, "r1-eth3_in.pcap"))
+    packets_out = rdpcap(os.path.join(folder, "r2-eth1_in.pcap"))
     out_pointer = 0
     print("number ingoing packets: "+str(len(packets_in)))
     print("number outgoing packets: "+str(len(packets_out)))
