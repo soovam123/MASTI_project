@@ -196,7 +196,7 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
         #endif
         */
 
-        if (hdr.monitor.isValid()) {
+        if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500) {
             if (meta.fwd.to_monitor != 0) {
                 // Packet to be sent to monitor
 
@@ -232,7 +232,7 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         standard_metadata.egress_spec = egress_spec;
         hdr.ethernet.dst_addr = dst_mac;
 
-        if (hdr.monitor.isValid()){
+        if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500){
             meta.fwd.to_monitor = 8w10;             // packet going to monitor
         }             
     }
@@ -289,7 +289,7 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
             debug_std_meta_ingress_start.apply(standard_metadata);
             my_debug_1_1.apply(hdr, meta);
         #endif  // ENABLE_DEBUG_TABLES
-        if (hdr.monitor.isValid()) {
+        if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500) {
             set_init_monitor.apply();
 
             if (hdr.monitor.received == 0 && hdr.monitor.if_monitor != 4w0) {

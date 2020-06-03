@@ -196,7 +196,7 @@ def main():
         r1.start()
 
         
-    #iperfTest = IperfTest()
+    iperfTest = IperfTest()
 
     if p4:
         sleep(1)
@@ -229,7 +229,7 @@ def main():
     sleep(1)
 
     print("Now the iperf test starts !")
-   # iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft)
+    iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft)
     if not args.nocli:
         CLI( mn )
     mn.stop()

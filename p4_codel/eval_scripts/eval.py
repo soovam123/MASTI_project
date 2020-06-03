@@ -59,8 +59,9 @@ def parse_ping_trace(folder, dropFirstN=0):
     return result
 
 def parse_pcap_trace(folder):
+    # TODO: set the packets_in and packets_out for the links/interfaces we want to test; Maybe make this a cli arg?
     packets_in = rdpcap(os.path.join(folder, "r1-eth1_out.pcap"))
-    packets_out = rdpcap(os.path.join(folder, "r1-eth2_in.pcap"))
+    packets_out = rdpcap(os.path.join(folder, "r1-eth3_in.pcap"))
     out_pointer = 0
     print("number ingoing packets: "+str(len(packets_in)))
     print("number outgoing packets: "+str(len(packets_out)))
@@ -72,6 +73,13 @@ def parse_pcap_trace(folder):
     for packet in packets_in:
         if (length == out_pointer):
             break
+        # TODO: Do we want to also ignore packets.len < 500?
+        # Ignore non-TCP packets in packets_in
+        if packet['IP'].proto != 6:
+            continue
+        # Ignore non-TCP packets in packets_out
+        if packets_out[out_pointer].proto != 6:
+            out_pointer += 1
         out_packet = packets_out[out_pointer]
         tcp_in = packet['TCP']
         tcp_out = out_packet['TCP']
@@ -79,6 +87,10 @@ def parse_pcap_trace(folder):
         if(match):
             out_pointer+=1
             resLst.append((packet, out_packet))
+            #print("Matched this:")
+            #print("r1-eth1_out: %d" %(tcp_in.seq))
+            #print("r1-eth3_in: %d" %(tcp_out.seq))
+            #print("\n\n")
         else:
             counterDrops = counterDrops + 1
             print("Packet dropped: " + str(packet.time - basePacket.time))
@@ -91,7 +103,7 @@ def readFiletoString(file_name):
     file = open(file_name, "r")
     content = file.read()
     return content
-
+#  2034089065
 
 
 def evaluate(folder):
@@ -121,8 +133,9 @@ def evaluate_multi_iperf(folder):
         plot_multiple_iperf3_runs(res)
 
 def check_for_pcap(folder):
+    # TODO: set the packets_in and packets_out for the interfaces we want to test
     packets_in = os.path.join(folder, "r1-eth1_out.pcap")
-    packets_out = os.path.join(folder, "r1-eth2_in.pcap")
+    packets_out = os.path.join(folder, "r1-eth3_in.pcap")
     if not os.path.isfile(packets_in):
         return False
     if not os.path.isfile(packets_out):
