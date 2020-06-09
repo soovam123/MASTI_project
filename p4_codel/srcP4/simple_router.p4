@@ -17,28 +17,25 @@
 #include <core.p4>
 #include <v1model.p4>
 
-#define add_queue_delay
-#define ENABLE_DEBUG_TABLES
+//#define ENABLE_DEBUG_TABLES
 //#define CODEL_IMPLEMENTED
 #define MONITOR_ENABLED
 
 #include "header.p4"
 #include "codel.p4"
-
-#ifdef add_queue_delay
-//#include "queue_measurement.p4"
 #include "tcp_checksum.p4"
-#endif
 
 #define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
 #define NUM_PORT 2
 #define REGISTER_ID 1
 #define MONITORING_INTERVAL 100000      // 100 ms monitoring interval
 #define MAX_PACKET_LATENCY 30000         // 1 ms of application packet delay limit
+#define MAX_PACKET_DROPS 10              // Maximum number of consecutive packet drops rejected
 
 register<bit<48>>(NUM_PORT) r_recent_latency;
 register<bit<48>>(NUM_PORT) r_last_monitor_time;
-
+register<bit<8>>(NUM_PORT) r_packets_dropped;
+register<bit<1>>(NUM_PORT) r_dropping_state;
 //const bit<32> BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE = 1;
 
 //#define IS_I2E_CLONE(std_meta) (std_meta.instance_type == BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE)
@@ -194,7 +191,7 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
         
 
 
-        if (hdr.monitor.isValid()  && hdr.ipv4.totalLen > 500) {
+        if (hdr.monitor.isValid() && hdr.ipv4.totalLen > 500) {
             if (meta.fwd.to_monitor != 0) {
                 // Packet to be sent to monitor
 
@@ -211,11 +208,32 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
             else {
                 r_recent_latency.read(meta.l_latency.recent_latency, REGISTER_ID);
                 bit<48> time_to_reach = standard_metadata.egress_global_timestamp - standard_metadata.ingress_global_timestamp + meta.l_latency.recent_latency;
+                
                 if (time_to_reach >= hdr.monitor.time_left) {
-                    drop_packet();
+                    r_dropping_state.read(meta.l_latency.drop_state, REGISTER_ID);
+                    r_packets_dropped.read(meta.l_latency.pkt_drops, REGISTER_ID);
+                    
+                    if (meta.l_latency.drop_state == 1) {
+                        
+                        if (meta.l_latency.pkt_drops > MAX_PACKET_DROPS) {
+                            r_packets_dropped.write(REGISTER_ID, 8w0);
+                            drop_packet();
+                        }
+                        else {
+                            meta.l_latency.pkt_drops = meta.l_latency.pkt_drops + 1;
+                            r_packets_dropped.write(REGISTER_ID, meta.l_latency.pkt_drops);
+                        }    
+                    }
+                    
+                    else {
+                        r_dropping_state.write(REGISTER_ID, 1);
+                        r_packets_dropped.write(REGISTER_ID, 1);
+                    }
                 }
+                
                 else {
                     hdr.monitor.time_left = hdr.monitor.time_left - time_to_reach;
+                    r_dropping_state.write(REGISTER_ID, 0);
                 }
             }
         }
