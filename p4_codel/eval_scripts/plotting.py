@@ -26,7 +26,6 @@ noTitle = True
 legendCenter = False
 
 def plotIperf3(raw_data):
-
     plt.figure(1)
     fig = plt.gcf()
     fig.canvas.set_window_title('IPerf3')
@@ -34,14 +33,26 @@ def plotIperf3(raw_data):
 
     x_values = [0]
     y_values = [0]
+    avg_y = 0, max_rtt = 0, min_rtt = 0, max_tput = 0, min_tput = 0
+
     for data in raw_data:
         x_val = data[0]['start']
         y_val = 0
         for x in data:
             y_val += x['rtt']/1000.0
         y_val = y_val/len(data)
+        # Get min and max RTT
+        if y_val < min_rtt:
+            min_rtt = y_val
+        if y_val > max_rtt:
+            max_rtt = y_val
+        avg_y += y_val
         x_values.append(x_val)
         y_values.append(y_val)
+    avg_y = avg_y / len(y_values)
+    print("Average RTT: %d" %(avg_y))
+    print("Max RTT: %d" %(max_rtt))
+    print("Min RTT: %d" %(min_rtt))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.ylabel('RTT [ms]')
@@ -51,14 +62,25 @@ def plotIperf3(raw_data):
     plt.subplot(212)
     x_values = [0]
     y_values = [0]
+    avg_throughput = 0
     for data in raw_data:
         x_val = data[0]['start']
         y_val = 0
         for x in data:
             y_val += x['bytes'] / x['seconds']
         y_val = y_val/1000
+        # Get min and max Throughput
+        if y_val < min_tput:
+            min_tput = y_val
+        if y_val > max_tput:
+            max_tput = y_val
         x_values.append(x_val)
         y_values.append(y_val)
+        avg_throughput += y_val
+    avg_throughput = avg_throughput / len(y_values)
+    print("Average Throughput: %d" %(avg_throughput))
+    print("Max Throughput: %d" %(max_tput))
+    print("Min Throughput: %d" %(min_tput))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.xlabel('time [s]')
@@ -115,6 +137,7 @@ def plotPcapTrace(trace):
     x_values = []
     y_values = []
     basetime = trace[0][0].time
+    avg_delay = 0
     for tuple in trace:
         a = tuple[0]
         b = tuple[1]
@@ -123,6 +146,9 @@ def plotPcapTrace(trace):
         y_val = diff
         x_values.append(x_val)
         y_values.append(y_val)
+        avg_delay += y_val
+    avg_delay = avg_delay / len(y_values)
+    print("Average pcap trace delay: %d" %(avg_delay))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.ylabel('delay [ms]')
@@ -136,6 +162,7 @@ def plotPcapTrace(trace):
     basetime = trace[0][0].time
     p = []
     n = 10
+    avg_rate = 0
     for i in range(0, n):
         p.append(trace[0][1])
     i = 0.0
@@ -153,8 +180,11 @@ def plotPcapTrace(trace):
             y_val = 1 / diff
         x_values.append(x_val)
         y_values.append(y_val)
+        avg_rate += y_val
         for j in range(0, n - 1):
             p[j] = p[j + 1]
+    avg_rate = avg_rate / len(y_values)
+    print("Average rate [pps]: %d" %(avg_rate))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.ylabel('rate [pps]')

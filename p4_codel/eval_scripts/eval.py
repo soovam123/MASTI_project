@@ -78,7 +78,7 @@ def parse_pcap_trace(folder):
         if packet['IP'].proto != 6:
             continue
         # Ignore non-TCP packets in packets_out
-        if packets_out[out_pointer].proto != 6:
+        while packets_out[out_pointer].proto != 6:
             out_pointer += 1
         out_packet = packets_out[out_pointer]
         tcp_in = packet['TCP']
@@ -93,7 +93,8 @@ def parse_pcap_trace(folder):
             #print("\n\n")
         else:
             counterDrops = counterDrops + 1
-            print("Packet dropped: " + str(packet.time - basePacket.time))
+            #print("Dropped sequence: " + str(tcp_in.seq))
+            #print("Packet dropped: " + str(packet.time - basePacket.time))
             dropLst.append(packet)
     print("number drops: " + str(counterDrops))
     print("number matched packets: "+str(len(resLst)))
@@ -135,7 +136,7 @@ def evaluate_multi_iperf(folder):
 def check_for_pcap(folder):
     # TODO: set the packets_in and packets_out for the interfaces we want to test
     packets_in = os.path.join(folder, "r1-eth1_out.pcap")
-    packets_out = os.path.join(folder, "r1-eth3_in.pcap")
+    packets_out = os.path.join(folder, "r2-eth1_in.pcap")
     if not os.path.isfile(packets_in):
         return False
     if not os.path.isfile(packets_out):

@@ -27,7 +27,7 @@ from linuxrouter import LinuxRouter
 
 import sys
 #from eval_scripts.eval import *
-sys.path.insert(1, '/home/abhi/Documents/p4-codel/eval_scripts/')
+sys.path.insert(1, '/home/abhi/Documents/MASTI_project/p4-codel/eval_scripts/')
 #import eval
 
 import argparse
@@ -120,10 +120,10 @@ class MyTopo(Topo):
                           mac = '00:00:00:00:04:04',
 			  defaultRoute='via 10.0.4.40 dev eth0')
 
-        self.addLink(h1, s1, delay='0ms', intfName2='r1-eth1', addr2="00:00:00:00:01:00")
-        self.addLink(h2, s1, delay='0ms', intfName2='r1-eth2', addr2="00:00:00:00:02:00")
-        self.addLink(h3, s2, delay=args.h3delay, intfName2='r2-eth1', addr2="00:00:00:00:03:00")
-        self.addLink(h4, s2, delay='0ms', intfName2='r2-eth2', addr2="00:00:00:00:04:00")
+        self.addLink(h1, s1, delay='2ms', intfName2='r1-eth1', addr2="00:00:00:00:01:00")
+        self.addLink(h2, s1, delay='2ms', intfName2='r1-eth2', addr2="00:00:00:00:02:00")
+        self.addLink(h3, s2, delay='2ms', intfName2='r2-eth1', addr2="00:00:00:00:03:00")
+        self.addLink(h4, s2, delay='2ms', intfName2='r2-eth2', addr2="00:00:00:00:04:00")
 
         #TODO: Fix addLink for the routers
         #self.addLink(s1, aqm_switch,
@@ -133,8 +133,8 @@ class MyTopo(Topo):
         #             intfName2='r1-eth2',
         #             addr2="00:00:00:00:02:fe")
 
-        self.addLink(s1,aqm_switch,intfName1='r1-eth3',intfName2='r0-eth1')
-        self.addLink(s2,aqm_switch,intfName1='r2-eth3',intfName2='r0-eth2')
+        self.addLink(s1,aqm_switch,intfName1='r1-eth3',intfName2='r0-eth1', delay='2ms')
+        self.addLink(s2,aqm_switch,intfName1='r2-eth3',intfName2='r0-eth2', delay='2ms')
 
 def main():
     p4 = True if args.useP4 is not None else False
@@ -229,7 +229,7 @@ def main():
     sleep(1)
 
     print("Now the iperf test starts !")
-    iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft)
+    #iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft)
     if not args.nocli:
         CLI( mn )
     mn.stop()

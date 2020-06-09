@@ -34,7 +34,7 @@ class IperfTest():
         cmd1 = ["iperf3", "-s", "&"]
         b.cmd(cmd1)
         print('start iperf3 test')
-        cmd2 = ["iperf3", "-c", str(b.IP()), "-J", "-t " + str(transmit_time), "-i 0.1", "-P 1"]
+        cmd2 = ["iperf3", "-c", str(b.IP()), "-J", "-t " + str(transmit_time), "-i 0.1", "-P 1", "-b 6000000"]
 	print(cmd2)
         out = a.cmd(cmd2)
         b.sendInt()
