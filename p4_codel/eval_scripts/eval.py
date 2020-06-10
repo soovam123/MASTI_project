@@ -70,23 +70,35 @@ def parse_pcap_trace(folder):
     dropLst = []
     basePacket = packets_in[0]
     counterDrops = 0
+    pk_in = 0
+    out_of_order = []
     for packet in packets_in:
         if (length == out_pointer):
             break
         # TODO: Do we want to also ignore packets.len < 500?
         # Ignore non-TCP packets in packets_in
         if packet['IP'].proto != 6:
+            pk_in += 1
             continue
         # Ignore non-TCP packets in packets_out
-        while packets_out[out_pointer].proto != 6:
+        while packets_out[out_pointer]['IP'].proto != 6:
             out_pointer += 1
         out_packet = packets_out[out_pointer]
         tcp_in = packet['TCP']
         tcp_out = out_packet['TCP']
+        #print("%d %d" %(pk_in, tcp_in.seq))
+        #print("%d %d" %(out_pointer, tcp_out.seq))
+        pk_in += 1
+        if (tcp_out.seq < packets_out[out_pointer - 1]['TCP'].seq):
+            out_of_order.append(out_packet)
+            out_pointer += 1
+            tcp_out = packets_out[out_pointer]['TCP']
+
         match = tcp_in.seq == tcp_out.seq
         if(match):
             out_pointer+=1
             resLst.append((packet, out_packet))
+            #print(tcp_in.seq)
             #print("Matched this:")
             #print("r1-eth1_out: %d" %(tcp_in.seq))
             #print("r1-eth3_in: %d" %(tcp_out.seq))
@@ -96,8 +108,12 @@ def parse_pcap_trace(folder):
             #print("Dropped sequence: " + str(tcp_in.seq))
             #print("Packet dropped: " + str(packet.time - basePacket.time))
             dropLst.append(packet)
+            #print(tcp_in.seq)
+            #print(out_pointer)
+            #break
     print("number drops: " + str(counterDrops))
     print("number matched packets: "+str(len(resLst)))
+    print("number of out_of_orders:" + str(len(out_of_order)))
     return packets_in, resLst
 
 def readFiletoString(file_name):
@@ -118,7 +134,7 @@ def evaluate(folder):
     plotPcapTrace(pcap_trace)
     plotPcapInBandwidth(pcap_in_trace)
     plotPcapBandwidth(pcap_trace)
-    plotPcapQueueDelay(pcap_trace)
+    #plotPcapQueueDelay(pcap_trace)
 
 def evaluate_iperf(folder):
     out_folder = os.path.join(os.getcwd(), folder)
@@ -142,6 +158,7 @@ def check_for_pcap(folder):
     if not os.path.isfile(packets_out):
         return False
     return True
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Processes the mininet out files and creates statistics')
