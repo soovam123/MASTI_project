@@ -17,10 +17,10 @@ import time
 import os, sys, glob
 
 class IperfTest():
-    def IperfTest(self, a, b, c, d, transmit_time):
+    def IperfTest(self, a, b, c, d, transmit_time, bandwidth):
         #self.startPingTest(c, d)
         #time.sleep(2)
-        self.startIperfTest(a, b, transmit_time)
+        self.startIperfTest(a, b, transmit_time, bandwidth)
         #time.sleep(1)
         #self.stopPingTest(c)
         self.copyFiles()
@@ -30,11 +30,11 @@ class IperfTest():
             os.rename(file, "out/"+file)
 
     # data are transmitted from a to b
-    def startIperfTest(self, a, b, transmit_time):
+    def startIperfTest(self, a, b, transmit_time, bandwidth):
         cmd1 = ["iperf3", "-s", "&"]
         b.cmd(cmd1)
         print('start iperf3 test')
-        cmd2 = ["iperf3", "-c", str(b.IP()), "-J", "-t " + str(transmit_time), "-i 0.1", "-P 1", "-b 6000000"]
+        cmd2 = ["iperf3", "-c", str(b.IP()), "-J", "-t " + str(transmit_time), "-i 0.1", "-P 1", "-b " + str(bandwidth)]
 	print(cmd2)
         out = a.cmd(cmd2)
         b.sendInt()

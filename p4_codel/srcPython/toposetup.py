@@ -61,6 +61,9 @@ parser.set_defaults(h3delay="2ms")
 parser.add_argument('--iperft', help='The transmit time of iperf3 in seconds. Example: 30',
                     type=int, action="store")
 parser.set_defaults(iperft=50)
+parser.add_argument('--bw', help='Set iperf test bandwidth',
+                    type=str, action="store")
+parser.set_defaults(bw="10m")
 
 args = parser.parse_args()
 
@@ -122,7 +125,7 @@ class MyTopo(Topo):
 
         self.addLink(h1, s1, delay='2ms', intfName2='r1-eth1', addr2="00:00:00:00:01:00")
         self.addLink(h2, s1, delay='2ms', intfName2='r1-eth2', addr2="00:00:00:00:02:00")
-        self.addLink(h3, s2, delay='2ms', intfName2='r2-eth1', addr2="00:00:00:00:03:00")
+        self.addLink(h3, s2, delay=args.h3delay, intfName2='r2-eth1', addr2="00:00:00:00:03:00")
         self.addLink(h4, s2, delay='2ms', intfName2='r2-eth2', addr2="00:00:00:00:04:00")
 
         #TODO: Fix addLink for the routers
@@ -229,7 +232,7 @@ def main():
     sleep(1)
 
     print("Now the iperf test starts !")
-    #iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft)
+    iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft, args.bw)
     if not args.nocli:
         CLI( mn )
     mn.stop()

@@ -117,6 +117,8 @@ struct fwd_t {
 
 struct latency_t {
     bit<48> recent_latency;
+    bit<8> pkt_drops;
+    bit<1> drop_state;
 }
 
 struct metadata {

@@ -33,7 +33,7 @@ def plotIperf3(raw_data):
 
     x_values = [0]
     y_values = [0]
-    avg_y = 0, max_rtt = 0, min_rtt = 0, max_tput = 0, min_tput = 0
+    avg_y, max_rtt, min_rtt, max_tput, min_tput = 0, 0, 0, 0, 0
 
     for data in raw_data:
         x_val = data[0]['start']
@@ -46,6 +46,9 @@ def plotIperf3(raw_data):
             min_rtt = y_val
         if y_val > max_rtt:
             max_rtt = y_val
+            # initially set min_rtt value as well
+            if min_rtt == 0:
+                min_rtt = max_rtt
         avg_y += y_val
         x_values.append(x_val)
         y_values.append(y_val)
@@ -74,6 +77,8 @@ def plotIperf3(raw_data):
             min_tput = y_val
         if y_val > max_tput:
             max_tput = y_val
+            if min_tput == 0:
+                min_tput = max_tput
         x_values.append(x_val)
         y_values.append(y_val)
         avg_throughput += y_val

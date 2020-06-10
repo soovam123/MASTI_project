@@ -30,7 +30,7 @@
 #define REGISTER_ID 1
 #define MONITORING_INTERVAL 100000      // 100 ms monitoring interval
 #define MAX_PACKET_LATENCY 30000         // 1 ms of application packet delay limit
-#define MAX_PACKET_DROPS 10              // Maximum number of consecutive packet drops rejected
+#define MAX_PACKET_DROPS 0              // Maximum number of consecutive packet drops rejected
 
 register<bit<48>>(NUM_PORT) r_recent_latency;
 register<bit<48>>(NUM_PORT) r_last_monitor_time;
