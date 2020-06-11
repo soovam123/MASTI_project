@@ -15,7 +15,7 @@
 argsCommand=""
 
 if [ "$1" = "--bw" ]; then
-  argsCommand="$1 $2"
+  argsCommand="$1 $2 "
 fi
 
 if [ "$1" = "--nopcap" ] || [ "$1" = "--nocli" ]; then
@@ -23,7 +23,7 @@ if [ "$1" = "--nopcap" ] || [ "$1" = "--nocli" ]; then
 fi
 
 if [ "$1" = "--iperft" ]; then 
-  argsCommand="--iperft "$2
+  argsCommand="--iperft $2"
 fi
 
 if [ "$2" = "--nopcap" ] || [ "$2" = "--nocli" ]; then
@@ -35,7 +35,7 @@ if [ "$2" = "--iperft" ]; then
 fi
 
 if [ "$2" = "--bw" ]; then
-  argsCommand="$2 $3"
+  argsCommand="$argsCommand $2 $3"
 fi
 
 if [ "$3" = "--nopcap" ] || [ "$3" = "--nocli" ]; then
@@ -47,7 +47,7 @@ if [ "$3" = "--iperft" ]; then
 fi
 
 if [ "$3" = "--bw" ]; then
-  argsCommand="$3 $4"
+  argsCommand="$argsCommand $3 $4"
 fi
 
 if [ "$4" = "--nopcap" ] || [ "$4" = "--nocli" ]; then
@@ -55,8 +55,10 @@ if [ "$4" = "--nopcap" ] || [ "$4" = "--nocli" ]; then
 fi
 
 if [ "$4" = "--bw" ]; then
-  argsCommand="$4 $5"
+  argsCommand="$argsCommand $4 $5"
 fi
+
+echo "$argsCommand"
 
 #compile p4 file
 [ -e router_compiled.json ] && sudo rm -f router_compiled.json

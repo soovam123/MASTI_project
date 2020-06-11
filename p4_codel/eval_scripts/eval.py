@@ -92,7 +92,10 @@ def parse_pcap_trace(folder):
         if (tcp_out.seq < packets_out[out_pointer - 1]['TCP'].seq):
             out_of_order.append(out_packet)
             out_pointer += 1
-            tcp_out = packets_out[out_pointer]['TCP']
+            if(length != out_pointer):
+                tcp_out = packets_out[out_pointer]['TCP']
+            else:
+                break
 
         match = tcp_in.seq == tcp_out.seq
         if(match):
