@@ -2,9 +2,9 @@
 
 #echo `pwd`
 mkdir -p ./testOPs 
-# rm -rf out/*
+sudo rm -rf out/*
 
-bws=("16m" "14m" "12m" "10m" "8m" "6m")
+bws=("16M" "14M" "12M" "10M" "8M" "6M" "4M" "2M" "1M")
 
 for i in "${bws[@]}"
 do
