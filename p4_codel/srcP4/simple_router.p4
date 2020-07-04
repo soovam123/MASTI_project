@@ -29,12 +29,13 @@
 #define NUM_PORT 2
 #define REGISTER_ID 1
 #define MONITORING_INTERVAL 100000      // 100 ms monitoring interval
-#define MAX_PACKET_LATENCY 30000         // 1 ms of application packet delay limit
+#define MAX_PACKET_LATENCY_1 75000         // 30 ms of application packet delay limit
+#define MAX_PACKET_LATENCY_2 80000         // 20 ms of application packet delay limit
 #define MAX_PACKET_DROPS 0              // Maximum number of consecutive packet drops rejected
 
 register<bit<48>>(NUM_PORT) r_recent_latency;
 register<bit<48>>(NUM_PORT) r_last_monitor_time;
-register<bit<8>>(NUM_PORT) r_packets_dropped;
+register<bit<16>>(NUM_PORT) r_packets_dropped;
 register<bit<1>>(NUM_PORT) r_dropping_state;
 //const bit<32> BMV2_V1MODEL_INSTANCE_TYPE_INGRESS_CLONE = 1;
 
@@ -216,7 +217,7 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
                     if (meta.l_latency.drop_state == 1) {
                         
                         if (meta.l_latency.pkt_drops > MAX_PACKET_DROPS) {
-                            r_packets_dropped.write(REGISTER_ID, 8w0);
+                            r_packets_dropped.write(REGISTER_ID, 16w0);
                             drop_packet();
                         }
                         else {
@@ -285,13 +286,17 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         mark_to_drop(standard_metadata);
     }
 
-    action set_monitor_vars() {
+    action set_monitor_vars(bit<8> flow_id) {
         hdr.monitor.if_monitor = 0;
         hdr.monitor.received = 0;
         hdr.monitor.send_time = 0;
         hdr.monitor.relative_time = 0;
-        hdr.monitor.time_left = MAX_PACKET_LATENCY;
-
+	if (flow_id == 1) {
+            hdr.monitor.time_left = MAX_PACKET_LATENCY_1;
+	}
+	else if (flow_id == 2) {
+	    hdr.monitor.time_left = MAX_PACKET_LATENCY_2;	
+	}
         // Check if it should be a monitor packet 
 
         meta.fwd.time_now = standard_metadata.ingress_global_timestamp;

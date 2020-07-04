@@ -11,8 +11,8 @@ table_add ingress.forwarding ingress.forward 3 10.0.4.4 => 2 00:00:00:00:04:04
 
 table_add ingress.cloning ingress.clone_i2e 3 => 5
 
-table_add ingress.set_init_monitor ingress.set_monitor_vars 1 =>
-table_add ingress.set_init_monitor ingress.set_monitor_vars 2 =>
+table_add ingress.set_init_monitor ingress.set_monitor_vars 1 => 1
+table_add ingress.set_init_monitor ingress.set_monitor_vars 2 => 2
 
 
 mirroring_add 5 3
