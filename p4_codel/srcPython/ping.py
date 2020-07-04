@@ -15,12 +15,34 @@
 import subprocess
 import time
 import os, sys, glob
+import threading
 
 class IperfTest():
     def IperfTest(self, a, b, c, d, transmit_time, bandwidth):
         #self.startPingTest(c, d)
         #time.sleep(2)
-        self.startIperfTest(a, b, transmit_time, bandwidth)
+# THREADING HERE
+# Thread 0 saves to iperf_output_0.json and Thread 1 to iperf_output_1.json
+        allThreads = []
+        for index in range(2):
+            if(index % 2 == 0):
+                # H1 ro H3
+                i = threading.Thread(target=self.startIperfTest, args=(a, b, transmit_time, bandwidth, index))
+                allThreads.append(i)
+            else:
+                # H2 to H4
+                i = threading.Thread(target=self.startIperfTest, args=(c, d, transmit_time, bandwidth, index))
+                allThreads.append(i)
+
+        for x in allThreads:
+            x.start()
+        
+        # Wait for threads to  <-- blocking
+        for x in allThreads:
+            x.join()
+# THREADING ENDS
+
+        #self.startIperfTest(a, b, transmit_time, bandwidth)
         #time.sleep(1)
         #self.stopPingTest(c)
         self.copyFiles()
@@ -30,7 +52,7 @@ class IperfTest():
             os.rename(file, "out/"+file)
 
     # data are transmitted from a to b
-    def startIperfTest(self, a, b, transmit_time, bandwidth):
+    def startIperfTest(self, a, b, transmit_time, bandwidth, thread_index):
         cmd1 = ["iperf3", "-s", "&"]
         b.cmd(cmd1)
         print('start iperf3 test')
@@ -39,7 +61,8 @@ class IperfTest():
         out = a.cmd(cmd2)
         b.sendInt()
 	print("finished iperf3 test")
-        self.writeStringToFile("out/iperf_output.json", out)
+        json_file = "out/iperf_output_" + str(thread_index) + ".json"
+        self.writeStringToFile(json_file, out)
         #print(out)
 
     def startPingTest(self, a, b):

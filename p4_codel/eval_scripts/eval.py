@@ -141,11 +141,13 @@ def evaluate(folder):
 
 def evaluate_iperf(folder):
     out_folder = os.path.join(os.getcwd(), folder)
-    iperf3_file = os.path.join(out_folder, "iperf_output.json")
-    if not os.path.isfile(iperf3_file):
-        return
-    iperf3ResLst = parse_iperf3_json(iperf3_file)
-    plotIperf3(iperf3ResLst)
+    for i in range(2):
+        json_file = "iperf_output_" + str(i) + ".json"
+        iperf3_file = os.path.join(out_folder, json_file)
+        if not os.path.isfile(iperf3_file):
+            return
+        iperf3ResLst = parse_iperf3_json(iperf3_file)
+        plotIperf3(iperf3ResLst)
 
 def evaluate_multi_iperf(folder):
     res = parse_multi_iperf3_json(folder)
