@@ -58,13 +58,17 @@ def parse_ping_trace(folder, dropFirstN=0):
         result.append(float(ping_time))
     return result
 
-def parse_pcap_trace(folder):
+def parse_pcap_trace(folder, index):
     # TODO: set the packets_in and packets_out for the links/interfaces we want to test; Maybe make this a cli arg?
-    packets_in = rdpcap(os.path.join(folder, "r1-eth1_out.pcap"))
-    packets_out = rdpcap(os.path.join(folder, "r2-eth1_in.pcap"))
+    if(index == 0):
+        packets_in = rdpcap(os.path.join(folder, "r1-eth1_out.pcap"))
+        packets_out = rdpcap(os.path.join(folder, "r2-eth1_in.pcap"))
+    else:
+        packets_in = rdpcap(os.path.join(folder, "r1-eth2_out.pcap"))
+        packets_out = rdpcap(os.path.join(folder, "r2-eth2_in.pcap"))
     out_pointer = 0
-    print("number ingoing packets: "+str(len(packets_in)))
-    print("number outgoing packets: "+str(len(packets_out)))
+    print("number ingoing packets "+str(index)+" : "+str(len(packets_in)))
+    print("number outgoing packets "+str(index)+" : "+str(len(packets_out)))
     resLst = []
     length = len(packets_out)
     dropLst = []
@@ -114,9 +118,9 @@ def parse_pcap_trace(folder):
             #print(tcp_in.seq)
             #print(out_pointer)
             #break
-    print("number drops: " + str(counterDrops))
-    print("number matched packets: "+str(len(resLst)))
-    print("number of out_of_orders:" + str(len(out_of_order)))
+    print("number drops "+str(index)+" : " + str(counterDrops))
+    print("number matched packets "+str(index)+" : "+str(len(resLst)))
+    print("number of out_of_orders "+str(index)+" :" + str(len(out_of_order)))
     return packets_in, resLst
 
 def readFiletoString(file_name):
@@ -126,28 +130,27 @@ def readFiletoString(file_name):
 #  2034089065
 
 
-def evaluate(folder):
+def evaluate(folder, index):
     if not check_for_pcap(folder):
         return
     out_folder = os.path.join(os.getcwd(), folder)
     #evaluate_iperf(out_folder)
     #pingResLst = parse_ping_trace(out_folder)
 
-    pcap_in_trace, pcap_trace = parse_pcap_trace(out_folder)
-    plotPcapTrace(pcap_trace)
+    pcap_in_trace, pcap_trace = parse_pcap_trace(out_folder, index)
+    plotPcapTrace(pcap_trace, index)
     plotPcapInBandwidth(pcap_in_trace)
     plotPcapBandwidth(pcap_trace)
     #plotPcapQueueDelay(pcap_trace)
 
-def evaluate_iperf(folder):
+def evaluate_iperf(folder, index):
     out_folder = os.path.join(os.getcwd(), folder)
-    for i in range(2):
-        json_file = "iperf_output_" + str(i) + ".json"
-        iperf3_file = os.path.join(out_folder, json_file)
-        if not os.path.isfile(iperf3_file):
-            return
-        iperf3ResLst = parse_iperf3_json(iperf3_file)
-        plotIperf3(iperf3ResLst)
+    json_file = "iperf_output_" + str(index) + ".json"
+    iperf3_file = os.path.join(out_folder, json_file)
+    if not os.path.isfile(iperf3_file):
+        return
+    iperf3ResLst = parse_iperf3_json(iperf3_file)
+    plotIperf3(iperf3ResLst, index)
 
 def evaluate_multi_iperf(folder):
     res = parse_multi_iperf3_json(folder)
@@ -176,9 +179,10 @@ if __name__ == '__main__':
 
     evaluate_multi_iperf(folder)
 
-    evaluate_iperf(folder)
-
-    evaluate(folder)
+    # Change range to according to the flows
+    for index in range(2):    
+        evaluate_iperf(folder, index)
+        evaluate(folder, index)
 
     if args.gui:
         show_plots()

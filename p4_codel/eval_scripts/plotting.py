@@ -25,7 +25,7 @@ import numpy as np
 noTitle = True
 legendCenter = False
 
-def plotIperf3(raw_data):
+def plotIperf3(raw_data, index):
     plt.figure(1)
     fig = plt.gcf()
     fig.canvas.set_window_title('IPerf3')
@@ -53,9 +53,9 @@ def plotIperf3(raw_data):
         x_values.append(x_val)
         y_values.append(y_val)
     avg_y = avg_y / len(y_values)
-    print("Average RTT: %d" %(avg_y))
-    print("Max RTT: %d" %(max_rtt))
-    print("Min RTT: %d" %(min_rtt))
+    print("Average RTT "+str(index)+" : %d" %(avg_y))
+    print("Max RTT "+str(index)+" : %d" %(max_rtt))
+    print("Min RTT "+str(index)+" : %d" %(min_rtt))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.ylabel('RTT [ms]')
@@ -83,9 +83,9 @@ def plotIperf3(raw_data):
         y_values.append(y_val)
         avg_throughput += y_val
     avg_throughput = avg_throughput / len(y_values)
-    print("Average Throughput: %d" %(avg_throughput))
-    print("Max Throughput: %d" %(max_tput))
-    print("Min Throughput: %d" %(min_tput))
+    print("Average Throughput "+str(index)+" : %d" %(avg_throughput))
+    print("Max Throughput "+str(index)+" : %d" %(max_tput))
+    print("Min Throughput "+str(index)+" : %d" %(min_tput))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.xlabel('time [s]')
@@ -133,7 +133,7 @@ def plot_multiple_iperf3_runs(runs):
     plt.savefig('out/multipleIperfRuns.pdf', bbox_inches='tight')
 
 
-def plotPcapTrace(trace):
+def plotPcapTrace(trace, index):
     plt.figure(3)
     fig = plt.gcf()
     fig.canvas.set_window_title('Pcap Trace')
@@ -153,7 +153,7 @@ def plotPcapTrace(trace):
         y_values.append(y_val)
         avg_delay += y_val
     avg_delay = avg_delay / len(y_values)
-    print("Average pcap trace delay: %d" %(avg_delay))
+    print("Average pcap trace delay "+str(index)+" : %d" %(avg_delay))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.ylabel('delay [ms]')
@@ -189,7 +189,7 @@ def plotPcapTrace(trace):
         for j in range(0, n - 1):
             p[j] = p[j + 1]
     avg_rate = avg_rate / len(y_values)
-    print("Average rate [pps]: %d" %(avg_rate))
+    print("Average rate [pps] "+str(index)+" : %d" %(avg_rate))
     plt.plot(x_values, y_values)
     plt.ylim(ymin = 0)
     plt.ylabel('rate [pps]')

@@ -29,7 +29,7 @@
 #define NUM_PORT 2
 #define REGISTER_ID 1
 #define MONITORING_INTERVAL 100000      // 100 ms monitoring interval
-#define MAX_PACKET_LATENCY_1 75000         // 30 ms of application packet delay limit
+#define MAX_PACKET_LATENCY_1 60000         // 30 ms of application packet delay limit
 #define MAX_PACKET_LATENCY_2 80000         // 20 ms of application packet delay limit
 #define MAX_PACKET_DROPS 0              // Maximum number of consecutive packet drops rejected
 

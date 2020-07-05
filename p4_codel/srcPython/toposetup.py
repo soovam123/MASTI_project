@@ -60,10 +60,10 @@ parser.add_argument('--h3delay', help='The delay between h3 and s2. Example: "30
 parser.set_defaults(h3delay="2ms")
 parser.add_argument('--iperft', help='The transmit time of iperf3 in seconds. Example: 30',
                     type=int, action="store")
-parser.set_defaults(iperft=50)
+parser.set_defaults(iperft=10)
 parser.add_argument('--bw', help='Set iperf test bandwidth',
                     type=str, action="store")
-parser.set_defaults(bw="10m")
+parser.set_defaults(bw="5m")
 
 args = parser.parse_args()
 
