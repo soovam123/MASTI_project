@@ -1,0 +1,26 @@
+Average RTT 0 : 34
+Max RTT 0 : 43
+Min RTT 0 : 23
+Average Throughput 0 : 334
+Max Throughput 0 : 1662
+Min Throughput 0 : 0
+number ingoing packets 0 : 7044
+number outgoing packets 0 : 6872
+number drops 0 : 240
+number matched packets 0 : 6790
+number of out_of_orders 0 :82
+Average pcap trace delay 0 : 16
+Average rate [pps] 0 : 266
+Average RTT 1 : 31
+Max RTT 1 : 40
+Min RTT 1 : 23
+Average Throughput 1 : 1109
+Max Throughput 1 : 1954
+Min Throughput 1 : 644
+number ingoing packets 1 : 22936
+number outgoing packets 1 : 22922
+number drops 1 : 39
+number matched packets 1 : 22883
+number of out_of_orders 1 :39
+Average pcap trace delay 1 : 16
+Average rate [pps] 1 : 859
