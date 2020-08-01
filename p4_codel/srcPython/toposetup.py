@@ -125,7 +125,7 @@ class MyTopo(Topo):
 
         self.addLink(h1, s1, delay='2ms', intfName2='r1-eth1', addr2="00:00:00:00:01:00")
         self.addLink(h2, s1, delay='2ms', intfName2='r1-eth2', addr2="00:00:00:00:02:00")
-        self.addLink(h3, s2, delay=args.h3delay, intfName2='r2-eth1', addr2="00:00:00:00:03:00")
+        self.addLink(h3, s2, delay='2ms', intfName2='r2-eth1', addr2="00:00:00:00:03:00")
         self.addLink(h4, s2, delay='2ms', intfName2='r2-eth2', addr2="00:00:00:00:04:00")
 
         #TODO: Fix addLink for the routers

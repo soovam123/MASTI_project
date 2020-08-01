@@ -7,15 +7,17 @@ then
     exit 1
 fi
 
-for x in {1..3}
+for x in {1..12}
 do
 	# Move the simple_router_x to ./srcP4/simple_router.p4
 	p4_file="simple_router_${x}.p4"
 	# /home/abhi/Documents/MASTI_project/p4_codel/srcP4/simple_router.p4
 	cp ~/${p4_file} ./srcP4/simple_router.p4
 
+	combi=("20_70" "20_90" "20_110" "20_120" "40_90" "40_110" "60_70" "60_90" "60_110" "80_90" "80_110" "100_110")
+
 	# Create folder
-	param="${1}_${x}"
+	param="${1}_${combi[$(($x-1))]}"
 	mkdir -p ./testOPs/${param}
 
 	bws=("9M" "8M" "7M" "6M" "5M" "4M" "3M")
