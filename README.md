@@ -17,21 +17,21 @@
 
 
 ### Directory overview
-.
-├── eval\_scripts
-│   ├── eval.py
-│   └── plotting.py
-├── out
-├── srcP4
-│   ├── simple\_router.p4
-│   ├── commandsRouterSimple\_r0.txt
-│   ├── commandsRouterSimple\_r1.txt
-│   ├── commandsRouterSimple\_r2.txt
-│   └── header.p4
-├── srcPython
-│   ├── toposetup.py
-│   └── ping.py
-└── testOPs
+.\
+├── eval\_scripts\
+│   ├── eval.py\
+│   └── plotting.py\
+├── out\
+├── srcP4\
+│   ├── simple\_router.p4\
+│   ├── commandsRouterSimple\_r0.txt\
+│   ├── commandsRouterSimple\_r1.txt\
+│   ├── commandsRouterSimple\_r2.txt\
+│   └── header.p4\
+├── srcPython\
+│   ├── toposetup.py\
+│   └── ping.py\
+└── testOPs\
 
 #### eval\_scripts
 * eval.py - Primary evaluation script. Parses the pcap and iperf-JSON outputs. PCAP parsing is done by the `evaluate()` and `parse_pcap_trace()` functions. `parse_pcap_trace()` tells the script which PCAPs to evaluate (hard-cded). The iperf JSON output is parsed by the `evaluate_iperf()` function which makes calls to plotting.py
