@@ -34,9 +34,9 @@
 └── testOPs\
 
 #### eval\_scripts
-* eval.py - Primary evaluation script. Parses the pcap and iperf-JSON outputs. PCAP parsing is done by the `evaluate()` and `parse_pcap_trace()` functions. `parse_pcap_trace()` tells the script which PCAPs to evaluate (hard-cded). The iperf JSON output is parsed by the `evaluate_iperf()` function which makes calls to plotting.py
+* eval.py - Primary evaluation script. Parses the pcap and iperf-JSON outputs. PCAP parsing is done by the `evaluate()` and `parse_pcap_trace()` functions. `parse_pcap_trace()` tells the script which PCAPs to evaluate (hard-coded). The iperf JSON output is parsed by the `evaluate_iperf()` function which makes calls to plotting.py
 
-* plotting.py - Evaluates the iperf JSON output to calculate throughput and RTT. Also used for GUI (currently unused and not updated)
+* plotting.py - Evaluates the iperf JSON output to calculate throughput and RTT. (Also used for graph generation which is currently unused and not updated)
 
 #### out
 * Contains the output iperf3 JSON(s) and the PCAP files from each interface.
