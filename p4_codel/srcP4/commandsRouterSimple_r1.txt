@@ -17,8 +17,8 @@ table_add ingress.set_init_monitor ingress.set_monitor_vars 2 => 2
 
 mirroring_add 5 3
 
-set_queue_rate 1000 3             //in pps
-set_queue_depth 5000 3           //in nb_pkts
+set_queue_rate 100 3             //in pps
+set_queue_depth 500 3           //in nb_pkts
 
 table_set_default t_codel_control_law a_codel_control_law 552
 table_add t_codel_control_law a_codel_control_law 0/17 => 781

@@ -91,24 +91,25 @@ if __name__ == "__main__":
         for i in range(iter):
 
             # json files of the two flows for the configs
-            filename1 = filename + str(i) + "test1" 
-            filename2 = filename + str(i) + "test2"
+            filename1 = filename + str(i) + "/test1" 
+            filename2 = filename + str(i) + "/test2"
 
             stats1 = getStats(filename1)
             stats2 = getStats(filename2)
 
             # Throughput is in KBps
             fair += pow((stats1[3] + stats2[3]), 2) / (2 * (pow(stats1[3], 2) + pow(stats2[3], 2)))
-            util += (stats1[3] + stats2[3]) / Net_BW
-
+            #util += (stats1[3] + stats2[3]) / Net_BW
+	    '''	
             if (stats1[1] > max_latency):
                 max_latency = stats1[1]
             
             avg_latency += stats1[0]
-
+	    '''
         fair /= iter
         util /= iter
         avg_latency /= iter
         
-        print ("-------------------------------------------------------------------------")
+        print (fair)
+        #print ("-------------------------------------------------------------------------")
 

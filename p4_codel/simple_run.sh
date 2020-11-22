@@ -62,7 +62,7 @@ echo "$argsCommand"
 
 #compile p4 file
 [ -e router_compiled.json ] && sudo rm -f router_compiled.json
-p4c-bm2-ss srcP4/simple_router.p4 --std p4-16 -o router_compiled.json
+p4c-bm2-ss srcP4/router.p4 --std p4-16 -o router_compiled.json
 
 sudo killall ovs-testcontroller
 sudo mn -c

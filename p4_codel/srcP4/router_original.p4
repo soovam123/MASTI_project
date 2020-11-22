@@ -17,36 +17,51 @@
 #include <core.p4>
 #include <v1model.p4>
 
-///#define add_queue_delay //uncomment this line, if the queue delays should be stored in the TCP packets
+#define add_queue_delay //uncomment this line, if the queue delays should be stored in the TCP packets
 
 #include "header.p4"
-//#include "codel.p4"
+#include "codel.p4"
 
-//#ifdef add_queue_delay
-//#include "queue_measurement.p4"
-//#include "tcp_checksum.p4"
-//#endif
+#ifdef add_queue_delay
+#include "queue_measurement.p4"
+#include "tcp_checksum.p4"
+#endif
 
 parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
+        meta.routing_metadata.tcpLength = hdr.ipv4.totalLen;
         transition select(hdr.ipv4.protocol) {
             8w17: parse_udp;
             8w6: parse_tcp;
             default: accept;
         }
     }
-    
+    state parse_payload {
+        packet.extract(hdr.tcp_options);
+	#ifdef add_queue_delay
+        packet.extract(hdr.queue_delay);
+	#endif
+        transition accept;
+    }
     state parse_tcp {
         packet.extract(hdr.tcp);
-	    transition accept;
+	#ifdef add_queue_delay
+        transition select(hdr.tcp.dataOffset) {
+            4w0x8: parse_payload;
+            default: accept;
+        }
+	#else
+	transition accept;
+	#endif
     }
-
     state parse_udp {
         packet.extract(hdr.udp);
-	    transition accept;
+        /*transition select(hdr.udp.destPort) {
+            default: accept;
+        }*/
+	transition accept;
     }
-
     state start {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.ethertype) {
@@ -57,7 +72,18 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
 }
 
 control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+    c_checksum() c_checksum_0;
+    c_codel() c_codel_0;
+    c_add_queue_delay() c_add_queue_delay_0;
     apply {
+        if (standard_metadata.ingress_port == 9w1) {
+	    meta.codel.queue_id = standard_metadata.egress_port;
+            c_codel_0.apply(hdr, meta, standard_metadata);
+        }
+	#ifdef add_queue_delay
+        c_add_queue_delay_0.apply(hdr, standard_metadata);
+        c_checksum_0.apply(hdr, meta);
+	#endif
     }
 }
 
@@ -80,20 +106,13 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     }
 }
 
-control computeChecksum(inout headers  hdr, inout metadata meta) {
-     apply {
-    }
-}
-
-control verifyChecksum(inout headers hdr, inout metadata meta) {
-    apply {  }
-}
-
 control DeparserImpl(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.tcp);
+        packet.emit(hdr.tcp_options);
+        packet.emit(hdr.queue_delay);
         packet.emit(hdr.udp);
     }
 }
