@@ -14,8 +14,8 @@ table_add ingress.set_init_monitor ingress.set_monitor_vars 3 =>
 mirroring_add 5 1
 mirroring_add 11 2
 
-set_queue_rate 100 2             //in pps
-set_queue_depth 500 2           //in nb_pkts
+set_queue_rate 10000 2             //in pps
+set_queue_depth 50000 2           //in nb_pkts
 //set_queue_rate 1000 1             //in pps
 //set_queue_depth 10000 1           //in nb_pkts
 
