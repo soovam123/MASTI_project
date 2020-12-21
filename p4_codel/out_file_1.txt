@@ -1,0 +1,281 @@
+
+ovs-testcontroller: no process found
+*** Removing excess controllers/ofprotocols/ofdatapaths/pings/noxes
+killall controller ofprotocol ofdatapath ping nox_core lt-nox_core ovs-openflowd ovs-controller udpbwtest mnexec ivs 2> /dev/null
+killall -9 controller ofprotocol ofdatapath ping nox_core lt-nox_core ovs-openflowd ovs-controller udpbwtest mnexec ivs 2> /dev/null
+pkill -9 -f "sudo mnexec"
+*** Removing junk from /tmp
+rm -f /tmp/vconn* /tmp/vlogs* /tmp/*.out /tmp/*.log
+*** Removing old X11 tunnels
+*** Removing excess kernel datapaths
+ps ax | egrep -o 'dp[0-9]+' | sed 's/dp/nl:/'
+***  Removing OVS datapaths
+ovs-vsctl --timeout=1 list-br
+ovs-vsctl --timeout=1 list-br
+*** Removing all links of the pattern foo-ethX
+ip link show | egrep -o '([-_.[:alnum:]]+-eth[[:digit:]]+)'
+ip link show
+*** Killing stale mininet node processes
+pkill -9 -f mininet:
+*** Shutting down stale tunnels
+pkill -9 -f Tunnel=Ethernet
+pkill -9 -f .ssh/mn
+rm -f ~/.ssh/mn/*
+*** Cleanup complete.
+*** Creating network
+*** Adding controller
+*** Adding hosts:
+h1 h2 h3 h4 
+*** Adding switches:
+r0 r1 r2 
+*** Adding links:
+(2ms delay) (2ms delay) (h1, r1) (2ms delay) (2ms delay) (h2, r1) (2ms delay) (2ms delay) (h3, r2) (2ms delay) (2ms delay) (h4, r2) (2ms delay) (2ms delay) (r1, r0) (2ms delay) (2ms delay) (r2, r0) 
+*** Configuring hosts
+h1 h2 h3 h4 
+*** Starting controller
+c0 
+*** Starting 3 switches
+r0 Starting P4 switch r0.
+../../behavioral-model/targets/simple_switch/simple_switch -i 1@r0-eth1 -i 2@r0-eth2 --pcap --thrift-port 22222 --nanolog ipc:///tmp/bm-0-log.ipc --device-id 0 ./router_compiled.json --log-console
+P4 switch r0 has been started.
+r1 Starting P4 switch r1.
+../../behavioral-model/targets/simple_switch/simple_switch -i 1@r1-eth1 -i 2@r1-eth2 -i 3@r1-eth3 --pcap --thrift-port 22223 --nanolog ipc:///tmp/bm-1-log.ipc --device-id 1 ./router_compiled.json --log-console
+P4 switch r1 has been started.
+r2 Starting P4 switch r2.
+../../behavioral-model/targets/simple_switch/simple_switch -i 1@r2-eth1 -i 2@r2-eth2 -i 3@r2-eth3 --pcap --thrift-port 22224 --nanolog ipc:///tmp/bm-2-log.ipc --device-id 2 ./router_compiled.json --log-console
+P4 switch r2 has been started.
+
+disable ipv6
+h1
+disable ipv6
+h2
+disable ipv6
+h3
+disable ipv6
+h4
+disable ipv6
+r0
+disable ipv6
+r1
+disable ipv6
+r2
+srcP4/commandsRouterSimple_r0.txt,srcP4/commandsRouterSimple_r1.txt,srcP4/commandsRouterSimple_r2.txt
+../../behavioral-model/targets/simple_switch/sswitch_CLI ./router_compiled.json 22222
+Running ['../../behavioral-model/targets/simple_switch/sswitch_CLI', './router_compiled.json', '22222']
+Using Thrift port 22222
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:01	EXACT-0a:00:03:03
+action:              ingress.forward
+runtime data:        00:02	00:00:00:00:03:03
+Entry has been added with handle 0
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:01	EXACT-0a:00:04:04
+action:              ingress.forward
+runtime data:        00:02	00:00:00:00:04:04
+Entry has been added with handle 1
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:01:01
+action:              ingress.forward
+runtime data:        00:01	00:00:00:00:01:01
+Entry has been added with handle 2
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:02:02
+action:              ingress.forward
+runtime data:        00:01	00:00:00:00:02:02
+Entry has been added with handle 3
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:02:02
+action:              ingress.forward
+runtime data:        00:01	00:00:00:00:02:02
+Invalid table operation (DUPLICATE_ENTRY)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: *** Unknown syntax: //set_queue_rate 1000 1             //in pps
+RuntimeCmd: *** Unknown syntax: //set_queue_depth 10000 1           //in nb_pkts
+RuntimeCmd: *** Unknown syntax: //set_queue_depth 10000 1           //in nb_pkts
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: 
+
+srcP4/commandsRouterSimple_r0.txt,srcP4/commandsRouterSimple_r1.txt,srcP4/commandsRouterSimple_r2.txt
+../../behavioral-model/targets/simple_switch/sswitch_CLI ./router_compiled.json 22223
+Running ['../../behavioral-model/targets/simple_switch/sswitch_CLI', './router_compiled.json', '22223']
+Using Thrift port 22223
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:01	EXACT-0a:00:03:03
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:03:03
+Entry has been added with handle 0
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:01	EXACT-0a:00:04:04
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:04:04
+Entry has been added with handle 1
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:03:03
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:03:03
+Entry has been added with handle 2
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:04:04
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:04:04
+Entry has been added with handle 3
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:03	EXACT-0a:00:01:01
+action:              ingress.forward
+runtime data:        00:01	00:00:00:00:01:01
+Entry has been added with handle 4
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:03	EXACT-0a:00:02:02
+action:              ingress.forward
+runtime data:        00:02	00:00:00:00:02:02
+Entry has been added with handle 5
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:03	EXACT-0a:00:02:02
+action:              ingress.forward
+runtime data:        00:02	00:00:00:00:02:02
+Invalid table operation (DUPLICATE_ENTRY)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: 
+
+srcP4/commandsRouterSimple_r0.txt,srcP4/commandsRouterSimple_r1.txt,srcP4/commandsRouterSimple_r2.txt
+../../behavioral-model/targets/simple_switch/sswitch_CLI ./router_compiled.json 22224
+Running ['../../behavioral-model/targets/simple_switch/sswitch_CLI', './router_compiled.json', '22224']
+Using Thrift port 22224
+Obtaining JSON from switch...
+Done
+Control utility for runtime P4 table manipulation
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Invalid device manager operation (ERROR)
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:01	EXACT-0a:00:01:01
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:01:01
+Entry has been added with handle 0
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:01	EXACT-0a:00:02:02
+action:              ingress.forward
+r*** Stopping 1 controllers
+c0 
+*** Stopping 6 links
+......
+*** Stopping 3 switches
+r0 ..r1 ...r2 ...
+*** Stopping 4 hosts
+h1 h2 h3 h4 
+*** Done
+untime data:        00:03	00:00:00:00:02:02
+Entry has been added with handle 1
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:01:01
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:01:01
+Entry has been added with handle 2
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:02	EXACT-0a:00:02:02
+action:              ingress.forward
+runtime data:        00:03	00:00:00:00:02:02
+Entry has been added with handle 3
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:03	EXACT-0a:00:03:03
+action:              ingress.forward
+runtime data:        00:01	00:00:00:00:03:03
+Entry has been added with handle 4
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:03	EXACT-0a:00:04:04
+action:              ingress.forward
+runtime data:        00:02	00:00:00:00:04:04
+Entry has been added with handle 5
+RuntimeCmd: Adding entry to exact match table ingress.forwarding
+match key:           EXACT-00:03	EXACT-0a:00:04:04
+action:              ingress.forward
+runtime data:        00:02	00:00:00:00:04:04
+Invalid table operation (DUPLICATE_ENTRY)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.cloning)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: Error: Invalid table name (ingress.set_init_monitor)
+RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: Error: Invalid table name (t_codel_control_law)
+RuntimeCmd: 
+
+Now the iperf test starts !
+start iperf3 test
+['iperf3', '-c', '10.0.3.3', '-J', '-t 10', '-i 0.1', '-P 1', '-b 5m']
+start iperf3 test
+['iperf3', '-c', '10.0.4.4', '-J', '-t 10', '-i 0.1', '-P 1', '-b 5m']
+finished iperf3 test
+finished iperf3 test

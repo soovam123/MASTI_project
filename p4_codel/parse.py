@@ -60,7 +60,7 @@ def evaluateIperf3(raw_data):
     return stats
 
 def getStats(filename):
-    file = open('../out/' + filename + '.json', "r")
+    file = open('./drop_tests/' + filename + '.json', "r")
     content = file.read()
     content = json.loads(content)
     #now content is a dict
@@ -80,11 +80,11 @@ if __name__ == "__main__":
     
     iter = 10
     Net_BW = 53
-    latencies = ["5", "10", "15", "20", "30", "40", "50", "60", "70"]
-    min_latency = "5"
+    latencies = ["4000", "5000", "7000", "10000", "15000", "20000"]
+    min_latency = "4000"
     
     for l in range(latencies.index(min_latency),len(latencies)):
-        filename = min_latency + latencies[l]
+        filename = min_latency + "_" + latencies[l] + "_"
 
         fair, util, max_latency, avg_latency = 0, 0, 0, 0
 
@@ -98,18 +98,18 @@ if __name__ == "__main__":
             stats2 = getStats(filename2)
 
             # Throughput is in KBps
-            fair += pow((stats1[3] + stats2[3]), 2) / (2 * (pow(stats1[3], 2) + pow(stats2[3], 2)))
+            #fair += pow((stats1[3] + stats2[3]), 2) / (2 * (pow(stats1[3], 2) + pow(stats2[3], 2)))
             #util += (stats1[3] + stats2[3]) / Net_BW
 	    '''	
             if (stats1[1] > max_latency):
                 max_latency = stats1[1]
-            
+            '''
             avg_latency += stats1[0]
-	    '''
+	    
         fair /= iter
         util /= iter
         avg_latency /= iter
         
-        print (fair)
+        print (avg_latency)
         #print ("-------------------------------------------------------------------------")
 

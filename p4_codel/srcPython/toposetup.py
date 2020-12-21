@@ -233,7 +233,7 @@ def main():
 
     print("Now the iperf test starts !")
     iperfTest.IperfTest(mn.getNodeByName('h1'), mn.getNodeByName('h3'), mn.getNodeByName('h2'), mn.getNodeByName('h4'), args.iperft, args.bw)
-    if args.nocli:
+    if not args.nocli:
         CLI( mn )
     mn.stop()
 
